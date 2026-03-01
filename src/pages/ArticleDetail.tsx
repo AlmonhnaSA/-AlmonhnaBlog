@@ -101,10 +101,10 @@ const ArticleDetail = () => {
               day: "numeric"
             })}</span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Eye className="w-4 h-4" />
             <span>{article.views || 0} مشاهدة</span>
-          </div>
+          </div> */}
           {article.products && (
             <Link
               to={`/products/${article.products.id}`}
