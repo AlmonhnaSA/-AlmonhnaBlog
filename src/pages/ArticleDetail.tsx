@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
 import { Calendar, User, Eye, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ShareButton } from "@/components/ShareDialog";
+import { ArticleCard } from "@/components/ArticleCard";
 
 const ArticleDetail = () => {
   const { id } = useParams();
