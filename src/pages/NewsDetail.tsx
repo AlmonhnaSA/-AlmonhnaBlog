@@ -96,10 +96,10 @@ const NewsDetail = () => {
               day: "numeric"
             })}</span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Eye className="w-4 h-4" />
             <span>{news.views || 0} مشاهدة</span>
-          </div>
+          </div> */}
         </div>
 
         <Link
