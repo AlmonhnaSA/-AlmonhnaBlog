@@ -123,11 +123,12 @@ export const ShareDialog = ({ open, onOpenChange, url, title, shareUrl }: ShareD
 interface ShareButtonProps {
   url: string;
   title: string;
+  shareUrl?: string;
   className?: string;
   iconSize?: number;
 }
 
-export const ShareButton = ({ url, title, className = "", iconSize = 16 }: ShareButtonProps) => {
+export const ShareButton = ({ url, title, shareUrl, className = "", iconSize = 16 }: ShareButtonProps) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -143,7 +144,7 @@ export const ShareButton = ({ url, title, className = "", iconSize = 16 }: Share
       >
         <Share2 style={{ width: iconSize, height: iconSize }} />
       </button>
-      <ShareDialog open={open} onOpenChange={setOpen} url={url} title={title} />
+      <ShareDialog open={open} onOpenChange={setOpen} url={url} title={title} shareUrl={shareUrl} />
     </>
   );
 };
