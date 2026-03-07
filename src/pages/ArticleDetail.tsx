@@ -39,6 +39,31 @@ const ArticleDetail = () => {
     },
   });
 
+  const { data: relatedArticles } = useQuery({
+    queryKey: ["related-articles", article?.author_id, id],
+    enabled: !!article?.author_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select(`
+          *,
+          profiles:author_id (
+            id,
+            name,
+            photo_url
+          )
+        `)
+        .eq("author_id", article!.author_id)
+        .eq("status", "approved")
+        .neq("id", id!)
+        .limit(6);
+
+      if (error) throw error;
+      // Shuffle and take 3
+      return (data || []).sort(() => Math.random() - 0.5).slice(0, 3);
+    },
+  });
+
   useEffect(() => {
     if (article) {
       const incrementViews = async () => {
