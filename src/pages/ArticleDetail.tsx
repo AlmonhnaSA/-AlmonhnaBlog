@@ -188,6 +188,29 @@ const ArticleDetail = () => {
 />
         </div>
       </article>
+
+      {relatedArticles && relatedArticles.length > 0 && (
+        <section className="container mx-auto px-4 pb-12 max-w-4xl">
+          <h2 className="text-2xl font-bold mb-6 border-b border-border pb-3">مقالات أخرى للكاتب</h2>
+          <div className="grid gap-4">
+            {relatedArticles.map((related: any) => (
+              <ArticleCard
+                key={related.id}
+                id={related.id}
+                title={related.title}
+                excerpt={related.excerpt}
+                coverImage={related.cover_image_url}
+                author={{
+                  name: related.profiles?.name || "",
+                  photo: related.profiles?.photo_url || undefined,
+                }}
+                date={related.created_at}
+                type="article"
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
