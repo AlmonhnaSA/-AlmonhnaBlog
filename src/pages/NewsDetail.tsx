@@ -104,6 +104,7 @@ const NewsDetail = () => {
             iconSize={20}
             className="mr-auto"
           />
+        </div>
 
         <Link
           to={`/writers/${news.profiles.id}`}
