@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>${escapeHtml(data.title)} - ${SITE_NAME}</title>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">  <title>${escapeHtml(data.title)} - ${SITE_NAME}</title>
   <meta name="description" content="${escapeHtml(data.excerpt)}">
   
   <!-- Open Graph -->
