@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET",
@@ -11,12 +10,15 @@ const SITE_NAME = "المُنحنى";
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  const type = url.searchParams.get("type"); // "article" or "news"
+  let type = url.searchParams.get("type"); // article أو news
   const id = url.searchParams.get("id");
 
   if (!type || !id) {
     return Response.redirect(SITE_URL, 302);
   }
+
+  // تصحيح أي type بالجمع
+  if (type === "articles") type = "article";
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -39,10 +41,10 @@ Deno.serve(async (req) => {
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">  <title>${escapeHtml(data.title)} - ${SITE_NAME}</title>
+  <meta charset="utf-8">
+  <title>${escapeHtml(data.title)} - ${SITE_NAME}</title>
   <meta name="description" content="${escapeHtml(data.excerpt)}">
-  
+
   <!-- Open Graph -->
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escapeHtml(data.title)}">
@@ -50,13 +52,13 @@ Deno.serve(async (req) => {
   <meta property="og:image" content="${escapeHtml(data.cover_image_url)}">
   <meta property="og:url" content="${redirectUrl}">
   <meta property="og:site_name" content="${SITE_NAME}">
-  
+
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(data.title)}">
   <meta name="twitter:description" content="${escapeHtml(data.excerpt)}">
   <meta name="twitter:image" content="${escapeHtml(data.cover_image_url)}">
-  
+
   <meta http-equiv="refresh" content="0;url=${redirectUrl}">
   <script>window.location.href = "${redirectUrl}";</script>
 </head>
