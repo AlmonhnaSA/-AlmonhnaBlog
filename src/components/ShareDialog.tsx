@@ -54,7 +54,7 @@ export const ShareDialog = ({ open, onOpenChange, url, displayUrl, title }: Shar
   const shownUrl = displayUrl || url;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(shownUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
