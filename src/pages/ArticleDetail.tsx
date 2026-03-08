@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { ShareButton } from "@/components/ShareDialog";
 import { ArticleCard } from "@/components/ArticleCard";
 
+
 const ArticleDetail = () => {
   const { id } = useParams();
 
