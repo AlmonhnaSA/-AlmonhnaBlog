@@ -75,15 +75,13 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-  const encoder = new TextEncoder();
-  const body = encoder.encode(html);
-
-  return new Response(body, {
-    headers: {
+  return new Response(html, {
+    status: 200,
+    headers: new Headers({
       ...corsHeaders,
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=3600",
-    },
+    }),
   });
 });
 
