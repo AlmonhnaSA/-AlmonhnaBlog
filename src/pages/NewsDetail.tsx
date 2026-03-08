@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
 import { Calendar, User, Eye } from "lucide-react";
+import { ShareButton } from "@/components/ShareDialog";
 import { useEffect } from "react";
 
 const NewsDetail = () => {
@@ -96,10 +97,13 @@ const NewsDetail = () => {
               day: "numeric"
             })}</span>
           </div>
-          {/* <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            <span>{news.views || 0} مشاهدة</span>
-          </div> */}
+          <ShareButton
+            url={`https://almonhna.sa/api/og-share?type=news&id=${id}`}
+            displayUrl={`https://almonhna.sa/news/${id}`}
+            title={news.title}
+            iconSize={20}
+            className="mr-auto"
+          />
         </div>
 
         <Link
