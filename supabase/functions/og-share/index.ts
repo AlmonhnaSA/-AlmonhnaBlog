@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const table = type === ("article" || "articles") ? "articles" : "news";
-  const pagePath =  `/articles/${id}`  //type === ("article" || "articles") ? `/articles/${id}` : `/news/${id}`;
+  const pagePath =  `/articles/${id}`;  //type === ("article" || "articles") ? `/articles/${id}` : `/news/${id}`;
   const redirectUrl = `${SITE_URL}${pagePath}`;
 
   const { data, error } = await supabase
