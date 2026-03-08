@@ -87,7 +87,7 @@ const shareLink = type  === "article" ? "articles" :  "news";
                     <span>{formattedDate}</span>
                   </div>
 <ShareButton
-  url={`https://jkaccydmonmsarrsgajk.supabase.co/functions/v1/og-share?type=${shareLink}&id=${id}`}
+  url={`https://jkaccydmonmsarrsgajk.supabase.co/functions/v1/og-share?type=articles&id=${id}`}
   title={title}
 />                </div>
               </div>
