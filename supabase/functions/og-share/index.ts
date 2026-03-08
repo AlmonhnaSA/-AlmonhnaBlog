@@ -28,13 +28,21 @@ Deno.serve(async (req) => {
    const redirectUrl = `${SITE_URL}${pagePath}`;
 
 
+  const userAgent = req.headers.get("user-agent")?.toLowerCase() || "";
+  const isCrawler = /(whatsapp|facebookexternalhit|twitterbot|x\.com|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bot|crawler|spider)/i.test(userAgent);
+
+  // للمستخدمين العاديين: تحويل HTTP مباشر للرابط الحقيقي
+  if (!isCrawler) {
+    return Response.redirect(redirectUrl, 302);
+  }
+
   const { data, error } = await supabase
     .from(table)
     .select("title, excerpt, cover_image_url")
     .eq("id", id)
     .single();
 
-  // لو ما لقينا المقال، نرجع للصفحة الرئيسية
+  // لو ما لقينا المحتوى، نرجع للرابط المقصود
   if (error || !data) return Response.redirect(redirectUrl, 302);
 
   const html = `<!DOCTYPE html>
