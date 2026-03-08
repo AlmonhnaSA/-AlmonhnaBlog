@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ShareButton } from "@/components/ShareDialog";
 
+
 interface ArticleCardProps {
   id: string;
   productType?: string;
