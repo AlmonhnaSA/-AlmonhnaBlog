@@ -45,14 +45,16 @@ interface ShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   url: string;
+  displayUrl?: string;
   title: string;
 }
 
-export const ShareDialog = ({ open, onOpenChange, url, title }: ShareDialogProps) => {
+export const ShareDialog = ({ open, onOpenChange, url, displayUrl, title }: ShareDialogProps) => {
   const [copied, setCopied] = useState(false);
+  const shownUrl = displayUrl || url;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(shownUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -87,7 +89,7 @@ export const ShareDialog = ({ open, onOpenChange, url, title }: ShareDialogProps
         <div className="flex items-center gap-2 bg-muted rounded-lg p-2 mt-2">
           <input
             type="text"
-            value={url}
+            value={shownUrl}
             readOnly
             className="flex-1 bg-transparent text-sm text-foreground outline-none px-2 truncate"
             dir="ltr"
@@ -120,12 +122,13 @@ export const ShareDialog = ({ open, onOpenChange, url, title }: ShareDialogProps
 
 interface ShareButtonProps {
   url: string;
+  displayUrl?: string;
   title: string;
   className?: string;
   iconSize?: number;
 }
 
-export const ShareButton = ({ url, title, className = "", iconSize = 16 }: ShareButtonProps) => {
+export const ShareButton = ({ url, displayUrl, title, className = "", iconSize = 16 }: ShareButtonProps) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -142,7 +145,7 @@ export const ShareButton = ({ url, title, className = "", iconSize = 16 }: Share
         
         <Share2 style={{ width: iconSize, height: iconSize }} />
       </button>
-      <ShareDialog open={open} onOpenChange={setOpen} url={url} title={title} />
+      <ShareDialog open={open} onOpenChange={setOpen} url={url} displayUrl={displayUrl} title={title} />
     </>
   );
 };

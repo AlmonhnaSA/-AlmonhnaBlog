@@ -88,8 +88,9 @@ const shareLink = type  === "article" ? "articles" :  "news";
                   </div>
                     <ShareButton
                       url={`https://jkaccydmonmsarrsgajk.supabase.co/functions/v1/og-share?type=${shareLink}&id=${id}`}
+                      displayUrl={fullUrl}
                       title={title}
-                    />             
+                    />
                 </div>
               </div>
             </div>
