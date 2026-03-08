@@ -139,6 +139,7 @@ export const ShareButton = ({ url, title, className = "", iconSize = 16 }: Share
         className={`p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-primary ${className}`}
         title="مشاركة"
       >
+        
         <Share2 style={{ width: iconSize, height: iconSize }} />
       </button>
       <ShareDialog open={open} onOpenChange={setOpen} url={url} title={title} />
