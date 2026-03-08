@@ -57,7 +57,10 @@ Deno.serve(async (req) => {
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escapeHtml(data.title)}">
   <meta property="og:description" content="${escapeHtml(data.excerpt)}">
-  <meta property="og:image" content="${escapeHtml(data.cover_image_url)}">
+  <meta property="og:image" content="${data.cover_image_url}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:url" content="${redirectUrl}">
   <meta property="og:site_name" content="${SITE_NAME}">
 
