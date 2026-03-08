@@ -23,8 +23,8 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const table = type === "article" ? "articles" : "news";
-  const pagePath = type === "article" ? `/articles/${id}` : `/news/${id}`;
+  const table = type === ("article" || "articles") ? "articles" : "news";
+  const pagePath = type === ("article" || "articles") ? `/articles/${id}` : `/news/${id}`;
   const redirectUrl = `${SITE_URL}${pagePath}`;
 
   const { data, error } = await supabase
