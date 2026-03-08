@@ -35,7 +35,7 @@ export const ArticleCard = ({
     day: "numeric",
   });
   const link = type === "article" ? `/articles/${id}` : `/news/${id}`;
-const shareLink = type  === "article" ? "article" :  "news"; 
+const shareLink = type  === "article" ? "articles" :  "news"; 
   const fullUrl = `https://www.almonhna.sa${link}`;
   const badgeColor = "bg-primary";
   
