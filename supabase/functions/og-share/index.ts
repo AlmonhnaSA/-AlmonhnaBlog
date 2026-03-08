@@ -23,9 +23,12 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const table = type === ("article" || "articles") ? "articles" : "news";
-  const pagePath =  `/articles/${id}`;  //type === ("article" || "articles") ? `/articles/${id}` : `/news/${id}`;
-  const redirectUrl = `${SITE_URL}${pagePath}`;
+  // const table = type === ("article" || "articles") ? "articles" : "news";
+  // const pagePath =  type === ("article" || "articles") ? `/articles/${id}` : `/news/${id}`;
+  // const redirectUrl = `${SITE_URL}${pagePath}`;
+  const table = "articles";          // دايمًا نجيب من جدول المقالات
+const pagePath = `/articles/${id}`; // دايمًا الرابط يروح على /articles/ID
+const redirectUrl = `${SITE_URL}${pagePath}`;
 
   const { data, error } = await supabase
     .from(table)
