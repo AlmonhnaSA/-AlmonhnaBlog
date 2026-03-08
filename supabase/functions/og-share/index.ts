@@ -57,7 +57,10 @@ Deno.serve(async (req) => {
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escapeHtml(data.title)}">
   <meta property="og:description" content="${escapeHtml(data.excerpt)}">
-  <meta property="og:image" content="${escapeHtml(data.cover_image_url)}">
+  <meta property="og:image" content="${data.cover_image_url}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:url" content="${redirectUrl}">
   <meta property="og:site_name" content="${SITE_NAME}">
 
@@ -65,7 +68,7 @@ Deno.serve(async (req) => {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(data.title)}">
   <meta name="twitter:description" content="${escapeHtml(data.excerpt)}">
-  <meta name="twitter:image" content="${escapeHtml(data.cover_image_url)}">
+  <meta name="twitter:image" content="${data.cover_image_url}">
 
   <meta http-equiv="refresh" content="0;url=${redirectUrl}">
   <script>window.location.href = "${redirectUrl}";</script>
@@ -75,14 +78,13 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-  const encoder = new TextEncoder();
-  const body = encoder.encode(html);
-
-  return new Response(body, {
+  return new Response(html, {
+    status: 200,
     headers: {
-      ...corsHeaders,
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET",
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=3600",
     },
   });
 });
