@@ -33,9 +33,8 @@ export const ArticleCard = ({
     month: "long",
     day: "numeric",
   });
-
-  const link = type === "article" ? `/articles/${id}` : `/news/${id}`;
-  const fullUrl = `https://almonhna.sa${link}`;
+  const link = type === "article" ? `articles&id=${id}` : `news&id=${id}`;
+  const fullUrl = `https://jkaccydmonmsarrsgajk.supabase.co/functions/v1/og-share?type=${link}`;
   const badgeColor = "bg-primary";
   
   const truncatedExcerpt = excerpt.length > 50 ? excerpt.substring(0, 50) + "..." : excerpt;
