@@ -34,6 +34,10 @@ import WriterPreviewArticle from "./pages/writer/PreviewArticle";
 import WriterPreviewNews from "./pages/writer/PreviewNews";
 import WriterSettings from "./pages/writer/Settings";
 import AdminAddEditProduct from "./pages/admin/AddEditProduct";
+import ManageStoreProducts from "./pages/admin/ManageStoreProducts";
+import AddEditStoreProduct from "./pages/admin/AddEditStoreProduct";
+import Store from "./pages/Store";
+import StoreProductDetail from "./pages/StoreProductDetail";
 import AdminPreviewArticle from "./pages/admin/PreviewArticle";
 import AdminPreviewNews from "./pages/admin/PreviewNews";
 import AdminEditArticle from "./pages/admin/AddEditArticle";
@@ -63,6 +67,8 @@ const App = () => (
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/bookmarks" element={<Bookmarks />} />
+          <Route path="/store" element={<Store />} />
+          <Route path="/store/:id" element={<StoreProductDetail />} />
           <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
           <Route path="/admin/articles" element={<AdminLayout><ManageArticles /></AdminLayout>} />
           <Route path="/admin/articles/preview/:id" element={<AdminLayout><AdminPreviewArticle /></AdminLayout>} />
@@ -74,6 +80,9 @@ const App = () => (
           <Route path="/admin/products" element={<AdminLayout><ManageProducts /></AdminLayout>} />
           <Route path="/admin/products/add" element={<AdminLayout><AdminAddEditProduct /></AdminLayout>} />
           <Route path="/admin/products/edit/:id" element={<AdminLayout><AdminAddEditProduct /></AdminLayout>} />
+          <Route path="/admin/store" element={<AdminLayout><ManageStoreProducts /></AdminLayout>} />
+          <Route path="/admin/store/add" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
+          <Route path="/admin/store/edit/:id" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
           <Route path="/admin/users" element={<AdminLayout><ManageUsers /></AdminLayout>} />
           <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
           <Route path="/writer" element={<WriterLayout><WriterDashboard /></WriterLayout>} />

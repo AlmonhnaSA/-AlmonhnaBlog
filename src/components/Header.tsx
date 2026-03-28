@@ -126,6 +126,7 @@ export const Header = () => {
     { label: "خدماتنا", href: "/news" },
     { label: "المقالات", href: "/articles" },
     { label: "المحفوظات", href: "/bookmarks" },
+    { label: "المتجر", href: "/store" },
   ];
 
   return (
