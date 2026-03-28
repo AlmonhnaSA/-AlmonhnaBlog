@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, User, LogOut, LayoutDashboard, Bookmark } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   Sheet,
@@ -125,6 +125,7 @@ export const Header = () => {
         { label: "الأعمدة ", href: "#products", onClick: handleProductsClick },
     { label: "خدماتنا", href: "/news" },
     { label: "المقالات", href: "/articles" },
+    { label: "المحفوظات", href: "/bookmarks" },
   ];
 
   return (

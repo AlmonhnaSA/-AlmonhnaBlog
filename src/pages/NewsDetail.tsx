@@ -7,6 +7,8 @@ import { Header } from "@/components/Header";
 import { Calendar, User, Eye } from "lucide-react";
 import { ShareButton } from "@/components/ShareDialog";
 import { useEffect } from "react";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { TextHighlighter } from "@/components/TextHighlighter";
 
 const NewsDetail = () => {
   const { id } = useParams();
@@ -102,6 +104,16 @@ const NewsDetail = () => {
             displayUrl={`https://almonhna.sa/news/${id}`}
             title={news.title}
             iconSize={20}
+          />
+          <BookmarkButton
+            item={{
+              id: news.id,
+              type: "news",
+              title: news.title,
+              excerpt: news.excerpt,
+              coverImage: news.cover_image_url,
+              authorName: news.profiles?.name || "",
+            }}
             className="mr-auto"
           />
         </div>
@@ -133,7 +145,9 @@ const NewsDetail = () => {
 
         <div className="prose prose-lg max-w-none">
           <p className="text-xl text-muted-foreground mb-6">{news.excerpt}</p>
-          <div className="site-content" dangerouslySetInnerHTML={{ __html: cleanContentFont(news.content) }} />
+          <TextHighlighter contentId={news.id} contentType="news">
+            <div className="site-content" dangerouslySetInnerHTML={{ __html: cleanContentFont(news.content) }} />
+          </TextHighlighter>
         </div>
       </article>
     </div>
