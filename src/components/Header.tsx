@@ -125,7 +125,7 @@ export const Header = () => {
         { label: "الأعمدة ", href: "#products", onClick: handleProductsClick },
     { label: "خدماتنا", href: "/news" },
     { label: "المقالات", href: "/articles" },
-    { label: "المحفوظات", href: "/bookmarks", icon: Bookmark },
+    { label: "المحفوظات", href: "/bookmarks" },
   ];
 
   return (
