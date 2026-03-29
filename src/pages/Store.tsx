@@ -2,19 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
-import { Download, Lock, FileText, Image as ImageIcon } from "lucide-react";
+import { Download, Lock, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Store = () => {
-  const { toast } = useToast();
   const [userArticleCount, setUserArticleCount] = useState<number>(0);
   const [isWriter, setIsWriter] = useState(false);
   const [userChecked, setUserChecked] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<Record<string, string>>({});
+  const [restrictionDialog, setRestrictionDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["store-products"],
@@ -71,13 +76,10 @@ const Store = () => {
   const handleDownload = (fileUrl: string, fileName: string, requiredCount: number) => {
     const canDownload = isWriter && userArticleCount >= requiredCount;
     if (!canDownload) {
-      toast({
-        title: "غير مصرح بالتحميل",
-        description: !isWriter
-          ? `يجب أن تكون كاتباً ولديك على الأقل ${requiredCount} مقال منشور`
-          : `تحتاج ${requiredCount} مقال منشور للتحميل (لديك ${userArticleCount})`,
-        variant: "destructive",
-      });
+      const msg = !isWriter
+        ? `يجب أن تكون كاتباً ولديك على الأقل ${requiredCount} مقال منشور للتحميل`
+        : `تحتاج ${requiredCount} مقال منشور للتحميل (لديك حالياً ${userArticleCount} مقال)`;
+      setRestrictionDialog({ open: true, message: msg });
       return;
     }
     const a = document.createElement("a");
@@ -229,14 +231,6 @@ const Store = () => {
                               </div>
                             )}
 
-                            {!canDownload && userChecked && (
-                              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                {!isWriter
-                                  ? `يجب أن تكون كاتباً بـ ${product.required_articles_count} مقال على الأقل`
-                                  : `تحتاج ${product.required_articles_count} مقال (لديك ${userArticleCount})`}
-                              </p>
-                            )}
                           </div>
                         )}
                       </div>
@@ -250,6 +244,21 @@ const Store = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={restrictionDialog.open} onOpenChange={(open) => setRestrictionDialog(prev => ({ ...prev, open }))}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-destructive">
+              <Lock className="w-5 h-5" />
+              غير مصرح بالتحميل
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">{restrictionDialog.message}</p>
+          <Button variant="outline" size="sm" onClick={() => setRestrictionDialog({ open: false, message: "" })}>
+            حسناً
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
