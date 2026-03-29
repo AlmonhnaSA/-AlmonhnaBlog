@@ -2,32 +2,104 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
-import { Link } from "react-router-dom";
+import { Download, Lock, FileText, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 const Store = () => {
+  const { toast } = useToast();
+  const [userArticleCount, setUserArticleCount] = useState<number>(0);
+  const [isWriter, setIsWriter] = useState(false);
+  const [userChecked, setUserChecked] = useState(false);
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<Record<string, string>>({});
+
   const { data: products, isLoading } = useQuery({
     queryKey: ["store-products"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("store_products")
-        .select("*, store_product_images(*)")
+        .select("*, store_product_images(*), store_product_files(*)")
         .order("display_order", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
 
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setUserChecked(true); return; }
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
+      const hasWriter = roles?.some(r => r.role === "writer" || r.role === "admin");
+      setIsWriter(!!hasWriter);
+
+      if (hasWriter) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profile) {
+          const { count } = await supabase
+            .from("articles")
+            .select("*", { count: "exact", head: true })
+            .eq("author_id", profile.id)
+            .eq("status", "approved");
+          setUserArticleCount(count || 0);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUserChecked(true);
+    }
+  };
+
+  const handleDownload = (fileUrl: string, fileName: string, requiredCount: number) => {
+    const canDownload = isWriter && userArticleCount >= requiredCount;
+    if (!canDownload) {
+      toast({
+        title: "غير مصرح بالتحميل",
+        description: !isWriter
+          ? `يجب أن تكون كاتباً ولديك على الأقل ${requiredCount} مقال منشور`
+          : `تحتاج ${requiredCount} مقال منشور للتحميل (لديك ${userArticleCount})`,
+        variant: "destructive",
+      });
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = fileUrl;
+    a.download = fileName;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   if (isLoading) {
     return (
       <>
         <TopBar />
         <Header />
-        <main className="min-h-screen py-12 px-4">
-          <div className="container mx-auto">
-            <h1 className="text-4xl font-bold mb-8 text-center">المتجر</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-muted animate-pulse rounded-lg h-80" />
+        <main className="min-h-screen py-8 px-4">
+          <div className="container mx-auto max-w-5xl">
+            <h1 className="text-3xl font-bold mb-6 text-center">المتجر</h1>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-muted animate-pulse rounded-xl h-48" />
               ))}
             </div>
           </div>
@@ -40,56 +112,141 @@ const Store = () => {
     <>
       <TopBar />
       <Header />
-      <main className="min-h-screen py-12 px-4">
-        <div className="container mx-auto">
-          <h1 className="text-4xl font-bold mb-8 text-center text-primary">المتجر</h1>
+      <main className="min-h-screen py-8 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <h1 className="text-3xl font-bold mb-6 text-center text-primary">المتجر</h1>
 
           {products && products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product) => (
-                <Link key={product.id} to={`/store/${product.id}`} className="group">
-                  <div className="bg-card rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-border">
-                    <div className="aspect-[4/3] overflow-hidden">
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="p-5">
-                      <h2 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                        {product.name}
-                      </h2>
-                      {product.description && (
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                          {product.description}
-                        </p>
-                      )}
-                      {/* Thumbnails of sub-images */}
-                      {product.store_product_images && product.store_product_images.length > 0 && (
-                        <div className="flex gap-1.5 mt-2">
-                          {product.store_product_images.slice(0, 4).map((img: any, i: number) => (
-                            <img
-                              key={img.id || i}
-                              src={img.image_url}
-                              alt=""
-                              className="w-10 h-10 rounded-md object-cover border border-border"
-                            />
-                          ))}
-                          {product.store_product_images.length > 4 && (
-                            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">
-                              +{product.store_product_images.length - 4}
+            <div className="space-y-4">
+              {products.map((product) => {
+                const mainImg = selectedImages[product.id] || product.image_url;
+                const subImgs = product.store_product_images || [];
+                const productFiles = product.store_product_files || [];
+                const canDownload = isWriter && userArticleCount >= product.required_articles_count;
+                const isExpanded = expandedProduct === product.id;
+
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col sm:flex-row gap-0">
+                      {/* Image section */}
+                      <div className="sm:w-52 shrink-0">
+                        <div className="aspect-[4/3] sm:aspect-square sm:h-full overflow-hidden relative">
+                          <img
+                            src={mainImg}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {product.required_articles_count > 0 && (
+                            <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-0.5">
+                              <FileText className="w-3 h-3" />
+                              +{product.required_articles_count}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content section */}
+                      <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+                        <div>
+                          <h2 className="text-lg font-bold mb-1 text-foreground">{product.name}</h2>
+                          {product.description && (
+                            <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{product.description}</p>
+                          )}
+
+                          {/* Sub image thumbnails */}
+                          {subImgs.length > 0 && (
+                            <div className="flex gap-1 mb-2 flex-wrap">
+                              <button
+                                onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: product.image_url }))}
+                                className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === product.image_url ? "border-primary" : "border-border"}`}
+                              >
+                                <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                              </button>
+                              {subImgs.slice(0, 5).map((img: any) => (
+                                <button
+                                  key={img.id}
+                                  onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: img.image_url }))}
+                                  className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === img.image_url ? "border-primary" : "border-border"}`}
+                                >
+                                  <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                              {subImgs.length > 5 && (
+                                <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-medium">
+                                  +{subImgs.length - 5}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
+
+                        {/* Files section */}
+                        {productFiles.length > 0 && (
+                          <div className="mt-2">
+                            {!isExpanded && productFiles.length > 1 ? (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant={canDownload ? "default" : "secondary"}
+                                  className="h-7 text-xs px-2"
+                                  onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
+                                >
+                                  <Download className="w-3 h-3 ml-1" />
+                                  {productFiles[0].file_name}
+                                </Button>
+                                <button
+                                  onClick={() => setExpandedProduct(product.id)}
+                                  className="text-xs text-primary hover:underline"
+                                >
+                                  +{productFiles.length - 1} ملفات أخرى
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-1.5">
+                                {productFiles.map((file: any) => (
+                                  <Button
+                                    key={file.id}
+                                    size="sm"
+                                    variant={canDownload ? "default" : "secondary"}
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
+                                  >
+                                    <Download className="w-3 h-3 ml-1" />
+                                    {file.file_name}
+                                  </Button>
+                                ))}
+                                {isExpanded && productFiles.length > 1 && (
+                                  <button
+                                    onClick={() => setExpandedProduct(null)}
+                                    className="text-xs text-muted-foreground hover:underline"
+                                  >
+                                    إخفاء
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {!canDownload && userChecked && (
+                              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
+                                <Lock className="w-3 h-3" />
+                                {!isWriter
+                                  ? `يجب أن تكون كاتباً بـ ${product.required_articles_count} مقال على الأقل`
+                                  : `تحتاج ${product.required_articles_count} مقال (لديك ${userArticleCount})`}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground text-xl">لا توجد منتجات في المتجر حالياً</p>
+            <p className="text-center text-muted-foreground text-lg">لا توجد منتجات في المتجر حالياً</p>
           )}
         </div>
       </main>
