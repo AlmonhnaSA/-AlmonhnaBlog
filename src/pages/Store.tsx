@@ -98,7 +98,7 @@ const Store = () => {
         <TopBar />
         <Header />
         <main className="min-h-screen py-8 px-4">
-          <div className="container mx-auto max-w-5xl">
+          <div className="container">
             <h1 class="text-4xl font-bold mb-2">المتجر</h1>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
   {[...Array(3)].map((_, i) => (
