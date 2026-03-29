@@ -231,14 +231,6 @@ const Store = () => {
                               </div>
                             )}
 
-                            {!canDownload && userChecked && (
-                              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                {!isWriter
-                                  ? `يجب أن تكون كاتباً بـ ${product.required_articles_count} مقال على الأقل`
-                                  : `تحتاج ${product.required_articles_count} مقال (لديك ${userArticleCount})`}
-                              </p>
-                            )}
                           </div>
                         )}
                       </div>
@@ -252,6 +244,21 @@ const Store = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={restrictionDialog.open} onOpenChange={(open) => setRestrictionDialog(prev => ({ ...prev, open }))}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-destructive">
+              <Lock className="w-5 h-5" />
+              غير مصرح بالتحميل
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">{restrictionDialog.message}</p>
+          <Button variant="outline" size="sm" onClick={() => setRestrictionDialog({ open: false, message: "" })}>
+            حسناً
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
