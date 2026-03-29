@@ -76,13 +76,10 @@ const Store = () => {
   const handleDownload = (fileUrl: string, fileName: string, requiredCount: number) => {
     const canDownload = isWriter && userArticleCount >= requiredCount;
     if (!canDownload) {
-      toast({
-        title: "غير مصرح بالتحميل",
-        description: !isWriter
-          ? `يجب أن تكون كاتباً ولديك على الأقل ${requiredCount} مقال منشور`
-          : `تحتاج ${requiredCount} مقال منشور للتحميل (لديك ${userArticleCount})`,
-        variant: "destructive",
-      });
+      const msg = !isWriter
+        ? `يجب أن تكون كاتباً ولديك على الأقل ${requiredCount} مقال منشور للتحميل`
+        : `تحتاج ${requiredCount} مقال منشور للتحميل (لديك حالياً ${userArticleCount} مقال)`;
+      setRestrictionDialog({ open: true, message: msg });
       return;
     }
     const a = document.createElement("a");
