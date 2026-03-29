@@ -20,6 +20,7 @@ const Store = () => {
   const [userChecked, setUserChecked] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<Record<string, string>>({});
+  const [restrictionDialog, setRestrictionDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["store-products"],
