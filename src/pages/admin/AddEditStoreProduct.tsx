@@ -79,40 +79,51 @@ export const AddEditStoreProduct = () => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFiles = event.target.files;
-    if (!uploadedFiles) return;
+    if (!uploadedFiles || uploadedFiles.length === 0) return;
 
     setUploading(true);
+    const newFiles: ProductFile[] = [];
+    
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
 
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
-        const fileName = `${userData.user.id}/${Date.now()}_${i}_${file.name}`;
+        const uniqueName = `${userData.user.id}/${crypto.randomUUID()}_${file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("store-files")
-          .upload(fileName, file);
+          .upload(uniqueName, file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Upload error for file ${file.name}:`, uploadError);
+          toast({ title: `خطأ في رفع ${file.name}`, description: uploadError.message, variant: "destructive" });
+          continue; // skip this file but continue with others
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("store-files")
-          .getPublicUrl(fileName);
+          .getPublicUrl(uniqueName);
 
-        setFiles(prev => [...prev, {
+        newFiles.push({
           file_url: publicUrl,
           file_name: file.name,
           file_size: file.size,
-        }]);
+        });
       }
 
-      toast({ title: "تم رفع الملفات بنجاح" });
-    } catch (error) {
-      console.error(error);
-      toast({ title: "خطأ في رفع الملفات", variant: "destructive" });
+      if (newFiles.length > 0) {
+        setFiles(prev => [...prev, ...newFiles]);
+        toast({ title: `تم رفع ${newFiles.length} ملف بنجاح` });
+      }
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast({ title: "خطأ في رفع الملفات", description: error?.message || "خطأ غير معروف", variant: "destructive" });
     } finally {
       setUploading(false);
+      // Reset file input so same files can be re-selected
+      event.target.value = "";
     }
   };
 
