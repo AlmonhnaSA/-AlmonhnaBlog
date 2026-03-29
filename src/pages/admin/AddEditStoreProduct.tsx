@@ -88,7 +88,7 @@ export const AddEditStoreProduct = () => {
 
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
-        const fileName = `${userData.user.id}/${Date.now()}_${file.name}`;
+        const fileName = `${userData.user.id}/${Date.now()}_${i}_${file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("store-files")
