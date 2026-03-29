@@ -99,7 +99,7 @@ const Store = () => {
         <Header />
         <main className="min-h-screen py-8 px-4">
           <div className="container mx-auto max-w-5xl">
-            <h1 className="text-3xl font-bold mb-6 text-center">المتجر</h1>
+            <h1 class="text-4xl font-bold mb-2">المتجر</h1>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
   {[...Array(3)].map((_, i) => (
                 <div key={i} className="bg-muted animate-pulse rounded-xl h-48" />
