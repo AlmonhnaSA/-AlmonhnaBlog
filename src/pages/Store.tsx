@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 
 const Store = () => {
-  const { toast } = useToast();
+  const [userChecked, setUserChecked] = useState(false);
   const [userArticleCount, setUserArticleCount] = useState<number>(0);
   const [isWriter, setIsWriter] = useState(false);
   const [userChecked, setUserChecked] = useState(false);
