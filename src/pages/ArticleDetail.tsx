@@ -11,7 +11,6 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { LikeButton } from "@/components/LikeButton";
 
-
 const ArticleDetail = () => {
   const { id } = useParams();
 
