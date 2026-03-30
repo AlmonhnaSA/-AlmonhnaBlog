@@ -175,7 +175,15 @@ const Store = () => {
                         <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
                       )}
 
-                     
+                      {/* Files & requirement row */}
+                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                        {product.required_articles_count > 0 && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <FileText className="w-3 h-3" />
+                            يتطلب {product.required_articles_count} مقالات
+                          </span>
+                        )}
+                        
                         {productFiles.length > 0 && (
                           <div className="flex items-center gap-1.5 mr-auto">
                             {!isExpanded && productFiles.length > 1 ? (
@@ -223,14 +231,7 @@ const Store = () => {
                           </div>
                         )}
 
-                       {/* Files & requirement row */}
-                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
-                        {product.required_articles_count > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <FileText className="w-3 h-3" />
-                            يتطلب {product.required_articles_count} مقالات
-                          </span>
-                        )}
+                      
                       </div>
                     </div>
                   </div>
