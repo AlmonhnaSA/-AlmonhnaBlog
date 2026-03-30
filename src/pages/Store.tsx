@@ -141,12 +141,6 @@ const Store = () => {
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
-                      {product.required_articles_count > 0 && (
-                        <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-0.5">
-                          <FileText className="w-3 h-3" />
-                          +{product.required_articles_count}
-                        </Badge>
-                      )}
                     </div>
 
                     {/* Content section */}
