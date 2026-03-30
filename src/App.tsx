@@ -43,7 +43,7 @@ import AdminPreviewNews from "./pages/admin/PreviewNews";
 import AdminEditArticle from "./pages/admin/AddEditArticle";
 import AdminEditNews from "./pages/admin/AddEditNews";
 import NotFound from "./pages/NotFound";
-import Bookmarks from "./pages/Bookmarks";
+
 
 const queryClient = new QueryClient();
 
@@ -66,7 +66,7 @@ const App = () => (
           <Route path="/writers/:id" element={<WriterDetail />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/bookmarks" element={<Bookmarks />} />
+          
           <Route path="/store" element={<Store />} />
           <Route path="/store/:id" element={<StoreProductDetail />} />
           <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />

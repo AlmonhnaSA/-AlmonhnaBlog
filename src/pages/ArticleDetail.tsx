@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { ShareButton } from "@/components/ShareDialog";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BookmarkButton } from "@/components/BookmarkButton";
-import { TextHighlighter } from "@/components/TextHighlighter";
+import { LikeButton } from "@/components/LikeButton";
 
 
 const ArticleDetail = () => {
@@ -188,6 +188,10 @@ const ArticleDetail = () => {
               coverImage: article.cover_image_url,
               authorName: article.profiles?.name || "",
             }}
+          />
+          <LikeButton
+            contentId={article.id}
+            contentType="article"
             className="mr-auto"
           />
         </div>
@@ -219,13 +223,11 @@ const ArticleDetail = () => {
         
         <div className="prose prose-lg max-w-none">
           <p className="text-xl text-muted-foreground mb-6">{article.excerpt}</p>
-          <TextHighlighter contentId={article.id} contentType="article">
-            <div
-              className="site-content [&_*]:!font-sans [&_*]:!text-gray-900 [&_h1]:!text-3xl [&_h2]:!text-2xl [&_h3]:!text-xl [&_*]:!text-[17px] [&_*]:!leading-[1.9]"
-              style={{padding:"5px", backgroundColor:"#f5f0e1d1"}}
-              dangerouslySetInnerHTML={{ __html: article.content }}
-            />
-          </TextHighlighter>
+          <div
+            className="site-content [&_*]:!font-sans [&_*]:!text-gray-900 [&_h1]:!text-3xl [&_h2]:!text-2xl [&_h3]:!text-xl [&_*]:!text-[17px] [&_*]:!leading-[1.9]"
+            style={{padding:"5px", backgroundColor:"#f5f0e1d1"}}
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
         </div>
       </article>
 
