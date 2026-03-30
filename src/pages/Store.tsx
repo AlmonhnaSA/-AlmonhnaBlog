@@ -185,7 +185,7 @@ const Store = () => {
                         )}
                         
                         {productFiles.length > 0 && (
-                          <div className="flex items-center gap-1.5 mr-auto">
+                          <div className="flex items-center gap-1.5 ">
                             {!isExpanded && productFiles.length > 1 ? (
                               <>
                                 <Button
