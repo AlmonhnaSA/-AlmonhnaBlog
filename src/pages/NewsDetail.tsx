@@ -8,7 +8,7 @@ import { Calendar, User, Eye } from "lucide-react";
 import { ShareButton } from "@/components/ShareDialog";
 import { useEffect } from "react";
 import { BookmarkButton } from "@/components/BookmarkButton";
-import { TextHighlighter } from "@/components/TextHighlighter";
+import { LikeButton } from "@/components/LikeButton";
 
 const NewsDetail = () => {
   const { id } = useParams();
@@ -114,6 +114,10 @@ const NewsDetail = () => {
               coverImage: news.cover_image_url,
               authorName: news.profiles?.name || "",
             }}
+          />
+          <LikeButton
+            contentId={news.id}
+            contentType="news"
             className="mr-auto"
           />
         </div>
@@ -145,9 +149,7 @@ const NewsDetail = () => {
 
         <div className="prose prose-lg max-w-none">
           <p className="text-xl text-muted-foreground mb-6">{news.excerpt}</p>
-          <TextHighlighter contentId={news.id} contentType="news">
-            <div className="site-content" dangerouslySetInnerHTML={{ __html: cleanContentFont(news.content) }} />
-          </TextHighlighter>
+          <div className="site-content" dangerouslySetInnerHTML={{ __html: cleanContentFont(news.content) }} />
         </div>
       </article>
     </div>
