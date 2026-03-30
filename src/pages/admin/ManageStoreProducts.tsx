@@ -55,14 +55,16 @@ const ManageStoreProducts = () => {
               alt={product.name}
               className="w-full h-48 object-cover rounded mb-3"
             />
-            <h3 className="font-bold text-lg mb-1">{product.name}</h3>
-            {product.description && (
-              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{product.description}</p>
-            )}
-            <p className="text-xs text-muted-foreground mb-4">
-              الحد الأدنى للمقالات: {product.required_articles_count}
-            </p>
-            <div className="flex gap-2">
+            <div className="flex-1">
+              <h3 className="font-bold text-lg mb-1">{product.name}</h3>
+              {product.description && (
+                <p className="text-sm text-muted-foreground mb-1 line-clamp-2">{product.description}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                الحد الأدنى للمقالات: {product.required_articles_count}
+              </p>
+            </div>
+            <div className="flex gap-2 mt-auto pt-2">
               <Link to={`/admin/store/edit/${product.id}`}>
                 <Button variant="outline" size="sm">
                   <Edit className="w-4 h-4 ml-2" />
