@@ -121,7 +121,7 @@ const Store = () => {
           <h1 className="text-4xl font-bold mb-2">المتجر</h1>
 
           {products && products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {products.map((product) => {
                 const mainImg = selectedImages[product.id] || product.image_url;
                 const subImgs = product.store_product_images || [];
@@ -141,12 +141,6 @@ const Store = () => {
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
-                      {product.required_articles_count > 0 && (
-                        <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-0.5">
-                          <FileText className="w-3 h-3" />
-                          +{product.required_articles_count}
-                        </Badge>
-                      )}
                     </div>
 
                     {/* Content section */}
@@ -182,53 +176,61 @@ const Store = () => {
                         <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
                       )}
 
-                      {/* Files section */}
-                      {productFiles.length > 0 && (
-                        <div className="mt-auto pt-2">
-                          {!isExpanded && productFiles.length > 1 ? (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Button
-                                size="sm"
-                                variant={canDownload ? "default" : "secondary"}
-                                className="h-7 text-xs px-2"
-                                onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
-                              >
-                                <Download className="w-3 h-3 ml-1" />
-                                تحميل الحزمة
-                              </Button>
-                              <button
-                                onClick={() => setExpandedProduct(product.id)}
-                                className="text-xs text-primary hover:underline"
-                              >
-                                +{productFiles.length - 1} ملفات أخرى
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-wrap gap-1.5">
-                              {productFiles.map((file: any) => (
+                      {/* Files & requirement row */}
+                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                        {product.required_articles_count > 0 && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <FileText className="w-3 h-3" />
+                            يتطلب {product.required_articles_count} مقالات
+                          </span>
+                        )}
+                        {productFiles.length > 0 && (
+                          <div className="flex items-center gap-1.5 mr-auto">
+                            {!isExpanded && productFiles.length > 1 ? (
+                              <>
                                 <Button
-                                  key={file.id}
                                   size="sm"
                                   variant={canDownload ? "default" : "secondary"}
                                   className="h-7 text-xs px-2"
-                                  onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
+                                  onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
                                 >
                                   <Download className="w-3 h-3 ml-1" />
-                                  {file.file_name}
+                                  تحميل الحزمة
                                 </Button>
-                              ))}
-                              {isExpanded && productFiles.length > 1 && (
                                 <button
-                                  onClick={() => setExpandedProduct(null)}
-                                  className="text-xs text-muted-foreground hover:underline"
+                                  onClick={() => setExpandedProduct(product.id)}
+                                  className="text-xs text-primary hover:underline"
                                 >
-                                  إخفاء
+                                  +{productFiles.length - 1}
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                              </>
+                            ) : (
+                              <div className="flex flex-wrap gap-1.5">
+                                {productFiles.map((file: any) => (
+                                  <Button
+                                    key={file.id}
+                                    size="sm"
+                                    variant={canDownload ? "default" : "secondary"}
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
+                                  >
+                                    <Download className="w-3 h-3 ml-1" />
+                                    {file.file_name}
+                                  </Button>
+                                ))}
+                                {isExpanded && productFiles.length > 1 && (
+                                  <button
+                                    onClick={() => setExpandedProduct(null)}
+                                    className="text-xs text-muted-foreground hover:underline"
+                                  >
+                                    إخفاء
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
