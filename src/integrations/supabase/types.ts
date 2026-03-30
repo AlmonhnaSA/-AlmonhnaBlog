@@ -77,6 +77,33 @@ export type Database = {
           },
         ]
       }
+      content_likes: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           author_id: string
