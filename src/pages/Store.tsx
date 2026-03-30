@@ -176,53 +176,61 @@ const Store = () => {
                         <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
                       )}
 
-                      {/* Files section */}
-                      {productFiles.length > 0 && (
-                        <div className="mt-auto pt-2">
-                          {!isExpanded && productFiles.length > 1 ? (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Button
-                                size="sm"
-                                variant={canDownload ? "default" : "secondary"}
-                                className="h-7 text-xs px-2"
-                                onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
-                              >
-                                <Download className="w-3 h-3 ml-1" />
-                                تحميل الحزمة
-                              </Button>
-                              <button
-                                onClick={() => setExpandedProduct(product.id)}
-                                className="text-xs text-primary hover:underline"
-                              >
-                                +{productFiles.length - 1} ملفات أخرى
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-wrap gap-1.5">
-                              {productFiles.map((file: any) => (
+                      {/* Files & requirement row */}
+                      <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                        {product.required_articles_count > 0 && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <FileText className="w-3 h-3" />
+                            يتطلب {product.required_articles_count} مقالات
+                          </span>
+                        )}
+                        {productFiles.length > 0 && (
+                          <div className="flex items-center gap-1.5 mr-auto">
+                            {!isExpanded && productFiles.length > 1 ? (
+                              <>
                                 <Button
-                                  key={file.id}
                                   size="sm"
                                   variant={canDownload ? "default" : "secondary"}
                                   className="h-7 text-xs px-2"
-                                  onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
+                                  onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
                                 >
                                   <Download className="w-3 h-3 ml-1" />
-                                  {file.file_name}
+                                  تحميل الحزمة
                                 </Button>
-                              ))}
-                              {isExpanded && productFiles.length > 1 && (
                                 <button
-                                  onClick={() => setExpandedProduct(null)}
-                                  className="text-xs text-muted-foreground hover:underline"
+                                  onClick={() => setExpandedProduct(product.id)}
+                                  className="text-xs text-primary hover:underline"
                                 >
-                                  إخفاء
+                                  +{productFiles.length - 1}
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                              </>
+                            ) : (
+                              <div className="flex flex-wrap gap-1.5">
+                                {productFiles.map((file: any) => (
+                                  <Button
+                                    key={file.id}
+                                    size="sm"
+                                    variant={canDownload ? "default" : "secondary"}
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
+                                  >
+                                    <Download className="w-3 h-3 ml-1" />
+                                    {file.file_name}
+                                  </Button>
+                                ))}
+                                {isExpanded && productFiles.length > 1 && (
+                                  <button
+                                    onClick={() => setExpandedProduct(null)}
+                                    className="text-xs text-muted-foreground hover:underline"
+                                  >
+                                    إخفاء
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

@@ -49,7 +49,7 @@ const ManageStoreProducts = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products?.map((product) => (
-          <Card key={product.id} className="p-4">
+          <Card key={product.id} className="p-4 flex flex-col">
             <img
               src={product.image_url}
               alt={product.name}
