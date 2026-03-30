@@ -151,7 +151,8 @@ const ArticleDetail = () => {
         <img
           src={article.cover_image_url}
           alt={article.title}
-          className="w-full h-96 object-cover rounded-lg mb-6"
+          className="w-full h-96 object-cover  mb-6"
+          style ={{borderRadius: "20px"}}
         />
 
         <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
