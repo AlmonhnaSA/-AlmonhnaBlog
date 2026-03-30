@@ -226,7 +226,7 @@ const ArticleDetail = () => {
           <p className="text-xl text-muted-foreground mb-6">{article.excerpt}</p>
           <div
             className="site-content [&_*]:!font-sans [&_*]:!text-gray-900 [&_h1]:!text-3xl [&_h2]:!text-2xl [&_h3]:!text-xl [&_*]:!text-[17px] [&_*]:!leading-[1.9]"
-            style={{padding:"5px", backgroundColor:"#f5f0e1d1"}}
+            style={{padding:"5px", borderRadius: "20px" , backgroundColor:"#f5f0e1d1"}}
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </div>
