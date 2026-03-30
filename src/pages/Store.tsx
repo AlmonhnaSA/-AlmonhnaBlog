@@ -243,6 +243,7 @@ const Store = () => {
         </div>
       </main>
 
+      
       <Dialog open={restrictionDialog.open} onOpenChange={(open) => setRestrictionDialog(prev => ({ ...prev, open }))}>
         <DialogContent className="max-w-sm text-center">
           <DialogHeader>
