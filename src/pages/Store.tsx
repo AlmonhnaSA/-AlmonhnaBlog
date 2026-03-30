@@ -132,110 +132,103 @@ const Store = () => {
                 return (
                   <div
                     key={product.id}
-                    className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col"
                   >
-                    <div className="flex flex-col sm:flex-row gap-0">
-                      {/* Image section */}
-                      <div className="sm:w-52 shrink-0">
-                        <div className="aspect-[4/3] sm:aspect-square sm:h-full overflow-hidden relative">
-                          <img
-                            src={mainImg}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                          {product.required_articles_count > 0 && (
-                            <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-0.5">
-                              <FileText className="w-3 h-3" />
-                              +{product.required_articles_count}
-                            </Badge>
+                    {/* Image section */}
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <img
+                        src={mainImg}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {product.required_articles_count > 0 && (
+                        <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5 gap-0.5">
+                          <FileText className="w-3 h-3" />
+                          +{product.required_articles_count}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Content section */}
+                    <div className="p-4 flex flex-col flex-1">
+                      {/* Sub image thumbnails */}
+                      {subImgs.length > 0 && (
+                        <div className="flex gap-1 mb-3 flex-wrap">
+                          <button
+                            onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: product.image_url }))}
+                            className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === product.image_url ? "border-primary" : "border-border"}`}
+                          >
+                            <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                          </button>
+                          {subImgs.slice(0, 4).map((img: any) => (
+                            <button
+                              key={img.id}
+                              onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: img.image_url }))}
+                              className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === img.image_url ? "border-primary" : "border-border"}`}
+                            >
+                              <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                          {subImgs.length > 4 && (
+                            <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-medium">
+                              +{subImgs.length - 4}
+                            </div>
                           )}
                         </div>
-                      </div>
+                      )}
 
-                      {/* Content section */}
-                      <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
-                        <div>
-                          <h2 className="text-lg font-bold mb-1 text-foreground">{product.name}</h2>
-                          {product.description && (
-                            <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{product.description}</p>
-                          )}
+                      <h2 className="text-base font-bold mb-1 text-foreground">{product.name}</h2>
+                      {product.description && (
+                        <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
+                      )}
 
-                          {/* Sub image thumbnails */}
-                          {subImgs.length > 0 && (
-                            <div className="flex gap-1 mb-2 flex-wrap">
-                              <button
-                                onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: product.image_url }))}
-                                className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === product.image_url ? "border-primary" : "border-border"}`}
+                      {/* Files section */}
+                      {productFiles.length > 0 && (
+                        <div className="mt-auto pt-2">
+                          {!isExpanded && productFiles.length > 1 ? (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Button
+                                size="sm"
+                                variant={canDownload ? "default" : "secondary"}
+                                className="h-7 text-xs px-2"
+                                onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
                               >
-                                <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                                <Download className="w-3 h-3 ml-1" />
+                                تحميل الحزمة
+                              </Button>
+                              <button
+                                onClick={() => setExpandedProduct(product.id)}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                +{productFiles.length - 1} ملفات أخرى
                               </button>
-                              {subImgs.slice(0, 5).map((img: any) => (
-                                <button
-                                  key={img.id}
-                                  onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: img.image_url }))}
-                                  className={`w-8 h-8 rounded overflow-hidden border-2 transition-all ${mainImg === img.image_url ? "border-primary" : "border-border"}`}
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {productFiles.map((file: any) => (
+                                <Button
+                                  key={file.id}
+                                  size="sm"
+                                  variant={canDownload ? "default" : "secondary"}
+                                  className="h-7 text-xs px-2"
+                                  onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
                                 >
-                                  <img src={img.image_url} alt="" className="w-full h-full object-cover" />
-                                </button>
+                                  <Download className="w-3 h-3 ml-1" />
+                                  {file.file_name}
+                                </Button>
                               ))}
-                              {subImgs.length > 5 && (
-                                <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-medium">
-                                  +{subImgs.length - 5}
-                                </div>
+                              {isExpanded && productFiles.length > 1 && (
+                                <button
+                                  onClick={() => setExpandedProduct(null)}
+                                  className="text-xs text-muted-foreground hover:underline"
+                                >
+                                  إخفاء
+                                </button>
                               )}
                             </div>
                           )}
                         </div>
-
-                        {/* Files section */}
-                        {productFiles.length > 0 && (
-                          <div className="mt-2">
-                            {!isExpanded && productFiles.length > 1 ? (
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant={canDownload ? "default" : "secondary"}
-                                  className="h-7 text-xs px-2"
-                                  onClick={() => handleDownload(productFiles[0].file_url, productFiles[0].file_name, product.required_articles_count)}
-                                >
-                                  <Download className="w-3 h-3 ml-1" />
-                                  {productFiles[0].file_name}
-                                </Button>
-                                <button
-                                  onClick={() => setExpandedProduct(product.id)}
-                                  className="text-xs text-primary hover:underline"
-                                >
-                                  +{productFiles.length - 1} ملفات أخرى
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex flex-wrap gap-1.5">
-                                {productFiles.map((file: any) => (
-                                  <Button
-                                    key={file.id}
-                                    size="sm"
-                                    variant={canDownload ? "default" : "secondary"}
-                                    className="h-7 text-xs px-2"
-                                    onClick={() => handleDownload(file.file_url, file.file_name, product.required_articles_count)}
-                                  >
-                                    <Download className="w-3 h-3 ml-1" />
-                                    {file.file_name}
-                                  </Button>
-                                ))}
-                                {isExpanded && productFiles.length > 1 && (
-                                  <button
-                                    onClick={() => setExpandedProduct(null)}
-                                    className="text-xs text-muted-foreground hover:underline"
-                                  >
-                                    إخفاء
-                                  </button>
-                                )}
-                              </div>
-                            )}
-
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 );
