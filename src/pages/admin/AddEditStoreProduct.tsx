@@ -34,6 +34,7 @@ export const AddEditStoreProduct = () => {
     image_url: "",
     required_articles_count: 0,
     display_order: 0,
+    product_type: "digital",
   });
 
   const [subImages, setSubImages] = useState<SubImage[]>([]);
