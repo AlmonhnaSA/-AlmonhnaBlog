@@ -224,9 +224,22 @@ export const AddEditStoreProduct = () => {
               <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف المنتج" rows={3} />
             </div>
             <ImageUpload value={formData.image_url} onChange={(url) => setFormData({ ...formData, image_url: url })} label="الصورة الرئيسية *" />
+            <div>
+              <Label>نوع المنتج</Label>
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="product_type" value="digital" checked={formData.product_type === "digital"} onChange={() => setFormData({ ...formData, product_type: "digital" })} />
+                  <span className="text-sm">رقمي (تحميل ملفات)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="product_type" value="physical" checked={formData.product_type === "physical"} onChange={() => setFormData({ ...formData, product_type: "physical" })} />
+                  <span className="text-sm">ملموس (يتم طلبه)</span>
+                </label>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>عدد المقالات المطلوبة للتحميل</Label>
+                <Label>عدد المقالات المطلوبة</Label>
                 <Input type="number" min={0} value={formData.required_articles_count} onChange={(e) => setFormData({ ...formData, required_articles_count: parseInt(e.target.value) || 0 })} />
               </div>
               <div>
