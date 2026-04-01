@@ -223,6 +223,7 @@ const Store = () => {
                         )}
 
                         {/* Files */}
+                        <div className="mt-auto pt-2 flex items-center justify-between gap-2">
                         <div className="mt-auto flex flex-wrap gap-2 pt-3">
                           {productFiles.map((file) => (
                             <Button
@@ -245,15 +246,14 @@ const Store = () => {
                         </div>
 
                         <div className="flex justify-between mt-3">
-                          {/* <span className="text-xs flex items-center gap-1">
-                            <FileText className="w-3 h-3" />
-                            {product.required_articles_count}
-                          </span> */}
+                       
 <span className="flex items-center gap-1 text-xs text-muted-foreground">
   <FileText className="w-3 h-3" /> يتطلب {product.required_articles_count} مقالات
 </span>
                          
                         </div>
+                                                  </div>
+
                       </div>
                     </div>
                   </Link>
