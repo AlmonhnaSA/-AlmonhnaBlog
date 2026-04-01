@@ -132,6 +132,7 @@ const Store = () => {
                 const isExpanded = expandedProduct === product.id;
 
                 return (
+                  <Link to={`/store/${product.id}`}>
                   <div
                     key={product.id}
                     className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col"
@@ -252,6 +253,7 @@ const Store = () => {
                 );
               })}
             </div>
+                    </Link>
           ) : (
             <p className="text-center text-muted-foreground text-lg">لا توجد منتجات في المتجر حالياً</p>
           )}
