@@ -173,7 +173,12 @@ const Store = () => {
                         </div>
                       )}
 
-                      <h2 className="text-base font-bold mb-1 text-foreground">{product.name}</h2>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-base font-bold text-foreground">{product.name}</h2>
+                        <Badge variant={(product as any).product_type === "physical" ? "secondary" : "default"} className="text-[10px] px-1.5 py-0">
+                          {(product as any).product_type === "physical" ? "ملموس" : "رقمي"}
+                        </Badge>
+                      </div>
                       {product.description && (
                         <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
                       )}
