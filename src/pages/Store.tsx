@@ -163,6 +163,7 @@ const Store = () => {
                   <Link
                     key={product.id}
                     to={`/store/${product.id}`}
+                    className="h-full block"
                   >
                     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
                       
