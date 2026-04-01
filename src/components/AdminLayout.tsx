@@ -66,6 +66,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     { path: "/admin/news", icon: Newspaper, label: "خدماتنا" },
     { path: "/admin/products", icon: Package, label: "المنتجات" },
     { path: "/admin/store", icon: ShoppingBag, label: "المتجر" },
+    { path: "/admin/store/requests", icon: ClipboardList, label: "طلبات المنتجات" },
     { path: "/admin/users", icon: UserCog, label: "المستخدمين" },
     { path: "/admin/settings", icon: Settings, label: "الإعدادات" },
   ];
