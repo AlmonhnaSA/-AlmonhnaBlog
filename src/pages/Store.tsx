@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
-import { Download, Lock, FileText, X } from "lucide-react";
+import { Download, Lock, FileText, X, Package, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -172,7 +173,12 @@ const Store = () => {
                         </div>
                       )}
 
-                      <h2 className="text-base font-bold mb-1 text-foreground">{product.name}</h2>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-base font-bold text-foreground">{product.name}</h2>
+                        <Badge variant={(product as any).product_type === "physical" ? "secondary" : "default"} className="text-[10px] px-1.5 py-0">
+                          {(product as any).product_type === "physical" ? "ملموس" : "رقمي"}
+                        </Badge>
+                      </div>
                       {product.description && (
                         <p className="text-muted-foreground text-xs line-clamp-2 mb-3">{product.description}</p>
                       )}
@@ -233,6 +239,12 @@ const Store = () => {
                             يتطلب {product.required_articles_count} مقالات
                           </span>
                         )}
+                        <Link to={`/store/${product.id}`}>
+                          <Button size="sm" variant="outline" className="h-7 text-xs px-2">
+                            <Eye className="w-3 h-3 ml-1" />
+                            عرض
+                          </Button>
+                        </Link>
                       
                       </div>
                     </div>

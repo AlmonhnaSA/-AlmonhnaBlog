@@ -36,6 +36,7 @@ import WriterSettings from "./pages/writer/Settings";
 import AdminAddEditProduct from "./pages/admin/AddEditProduct";
 import ManageStoreProducts from "./pages/admin/ManageStoreProducts";
 import AddEditStoreProduct from "./pages/admin/AddEditStoreProduct";
+import ManageProductRequests from "./pages/admin/ManageProductRequests";
 import Store from "./pages/Store";
 import StoreProductDetail from "./pages/StoreProductDetail";
 import AdminPreviewArticle from "./pages/admin/PreviewArticle";
@@ -83,6 +84,7 @@ const App = () => (
           <Route path="/admin/store" element={<AdminLayout><ManageStoreProducts /></AdminLayout>} />
           <Route path="/admin/store/add" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
           <Route path="/admin/store/edit/:id" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
+          <Route path="/admin/store/requests" element={<AdminLayout><ManageProductRequests /></AdminLayout>} />
           <Route path="/admin/users" element={<AdminLayout><ManageUsers /></AdminLayout>} />
           <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
           <Route path="/writer" element={<WriterLayout><WriterDashboard /></WriterLayout>} />

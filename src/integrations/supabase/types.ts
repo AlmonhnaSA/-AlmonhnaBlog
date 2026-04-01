@@ -157,6 +157,54 @@ export type Database = {
           },
         ]
       }
+      product_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          status: string
+          store_product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          status?: string
+          store_product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          status?: string
+          store_product_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_requests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_requests_store_product_id_fkey"
+            columns: ["store_product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           created_at: string
@@ -307,6 +355,7 @@ export type Database = {
           id: string
           image_url: string
           name: string
+          product_type: string
           required_articles_count: number
           updated_at: string
         }
@@ -317,6 +366,7 @@ export type Database = {
           id?: string
           image_url: string
           name: string
+          product_type?: string
           required_articles_count?: number
           updated_at?: string
         }
@@ -327,6 +377,7 @@ export type Database = {
           id?: string
           image_url?: string
           name?: string
+          product_type?: string
           required_articles_count?: number
           updated_at?: string
         }
