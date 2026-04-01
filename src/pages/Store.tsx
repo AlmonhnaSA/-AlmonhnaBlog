@@ -239,6 +239,12 @@ const Store = () => {
                             يتطلب {product.required_articles_count} مقالات
                           </span>
                         )}
+                        <Link to={`/store/${product.id}`}>
+                          <Button size="sm" variant="outline" className="h-7 text-xs px-2">
+                            <Eye className="w-3 h-3 ml-1" />
+                            عرض
+                          </Button>
+                        </Link>
                       
                       </div>
                     </div>
