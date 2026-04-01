@@ -250,10 +250,7 @@ const Store = () => {
                             {product.required_articles_count}
                           </span>
 
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-3 h-3 ml-1" />
-                            عرض
-                          </Button>
+                         
                         </div>
                       </div>
                     </div>
