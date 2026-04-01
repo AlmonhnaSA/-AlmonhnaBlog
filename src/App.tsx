@@ -36,6 +36,7 @@ import WriterSettings from "./pages/writer/Settings";
 import AdminAddEditProduct from "./pages/admin/AddEditProduct";
 import ManageStoreProducts from "./pages/admin/ManageStoreProducts";
 import AddEditStoreProduct from "./pages/admin/AddEditStoreProduct";
+import ManageProductRequests from "./pages/admin/ManageProductRequests";
 import Store from "./pages/Store";
 import StoreProductDetail from "./pages/StoreProductDetail";
 import AdminPreviewArticle from "./pages/admin/PreviewArticle";
