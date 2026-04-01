@@ -59,6 +59,7 @@ export const AddEditStoreProduct = () => {
         image_url: product.image_url,
         required_articles_count: product.required_articles_count,
         display_order: product.display_order || 0,
+        product_type: (product as any).product_type || "digital",
       });
     }
 
