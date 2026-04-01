@@ -164,7 +164,7 @@ const Store = () => {
                     key={product.id}
                     to={`/store/${product.id}`}
                   >
-                    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
                       
                       {/* Image */}
                       <div className="relative aspect-[4/3] overflow-hidden">
