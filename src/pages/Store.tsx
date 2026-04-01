@@ -145,7 +145,7 @@ const Store = () => {
           <h1 className="text-4xl font-bold mb-2">المتجر</h1>
 
           {products && products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
               {products.map((product) => {
                 const mainImg =
                   selectedImages[product.id] || product.image_url;
@@ -163,8 +163,9 @@ const Store = () => {
                   <Link
                     key={product.id}
                     to={`/store/${product.id}`}
+                    className="h-full block"
                   >
-                    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
                       
                       {/* Image */}
                       <div className="relative aspect-[4/3] overflow-hidden">
