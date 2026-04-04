@@ -23,7 +23,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
           <!-- Header with logo -->
           <tr>
             <td align="center" style="padding: 30px 0 20px;">
-              <img src="${siteUrl}/monlogo.png" alt="المنحنى" style="height: 60px; width: auto;" />
+              <img src="${siteUrl}/monlogo.png" alt="المُنحنى" style="height: 60px; width: auto;" />
             </td>
           </tr>
 
