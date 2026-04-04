@@ -148,7 +148,7 @@ const NewsDetail = () => {
         </Link>
 
         <div className="prose prose-lg max-w-none">
-          <p className="text-xl text-muted-foreground mb-6">{news.excerpt}</p>
+          <p className="text-xl text-muted-foreground mb-6" style={{textAlign: "justify"}}>{news.excerpt}</p>
           <div className="site-content" dangerouslySetInnerHTML={{ __html: cleanContentFont(news.content) }} />
         </div>
       </article>
