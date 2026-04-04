@@ -12,7 +12,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مرحباً بك في المنحنى</title>
+  <title>مرحباً بك في المُنحنى</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f4ee; direction: rtl;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f6f4ee; padding: 40px 0;">
@@ -23,7 +23,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
           <!-- Header with logo -->
           <tr>
             <td align="center" style="padding: 30px 0 20px;">
-              <img src="${siteUrl}/monlogo.png" alt="المنحنى" style="height: 60px; width: auto;" />
+              <img src="${siteUrl}/monlogo.png" alt="المُنحنى" style="height: 60px; width: auto;" />
             </td>
           </tr>
 
@@ -50,7 +50,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
                 <tr>
                   <td align="center" style="padding: 0 40px 32px;">
                     <p style="color: #5a7a7e; font-size: 16px; line-height: 28px; margin: 0;">
-                      يسعدنا انضمامك إلى فريق الكتّاب في منصة المنحنى
+                      يسعدنا انضمامك إلى فريق الكتّاب في منصة المُنحنى
                     </p>
                   </td>
                 </tr>
@@ -164,7 +164,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
           <tr>
             <td align="center" style="padding: 32px 20px 16px;">
               <p style="color: #8a9a9c; font-size: 13px; line-height: 22px; margin: 0;">
-                مع أطيب التحيات، فريق المنحنى
+                مع أطيب التحيات، فريق المُنحنى
               </p>
             </td>
           </tr>
@@ -227,12 +227,12 @@ Deno.serve(async (req) => {
         personalizations: [
           {
             to: [{ email }],
-            subject: '🎉 مرحباً بك في المنحنى - تم قبول طلبك!',
+            subject: '🎉 مرحباً بك في المُنحنى - تم قبول طلبك!',
           },
         ],
         from: {
           email: 'info@almonhna.sa',
-          name: 'المنحنى',
+          name: 'المُنحنى',
         },
         content: [
           {

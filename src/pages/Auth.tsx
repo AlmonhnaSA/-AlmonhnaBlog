@@ -56,7 +56,7 @@ const Auth = () => {
 
       toast({
         title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في منحنى",
+        description: "مرحباً بك في المُنحنى",
       });
     } catch (error: any) {
       toast({

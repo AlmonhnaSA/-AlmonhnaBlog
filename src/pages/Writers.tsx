@@ -55,7 +55,7 @@ const Writers = () => {
       <main className="container mx-auto px-4 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">جميع الكتّاب</h1>
-          <p className="text-muted-foreground">تعرف على كتابنا المتميزين في منحنى</p>
+          <p className="text-muted-foreground">تعرف على كتابنا المتميزين في المُنحنى</p>
         </div>
 
         {loading ? (
