@@ -77,11 +77,11 @@ export const TopBar = () => {
         if (items.length > 0) {
           setNewsItems(items);
         } else {
-          setNewsItems([{ title: "مرحباً بكم في منحنى ", date: "" }]);
+          setNewsItems([{ title: "مرحباً بكم في المُنحنى", date: "" }]);
         }
       } catch (error) {
         console.error("Error fetching content:", error);
-        setNewsItems([{ title: "مرحباً بكم في منحنى ", date: "" }]);
+        setNewsItems([{ title: "مرحباً بكم في المُنحنى", date: "" }]);
       }
     };
 

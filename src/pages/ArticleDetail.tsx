@@ -8,7 +8,8 @@ import { Calendar, User, Eye, Share2 } from "lucide-react";
 import { useEffect } from "react";
 import { ShareButton } from "@/components/ShareDialog";
 import { ArticleCard } from "@/components/ArticleCard";
-
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { LikeButton } from "@/components/LikeButton";
 
 const ArticleDetail = () => {
   const { id } = useParams();
@@ -149,7 +150,8 @@ const ArticleDetail = () => {
         <img
           src={article.cover_image_url}
           alt={article.title}
-          className="w-full h-96 object-cover rounded-lg mb-6"
+          className="w-full h-96 object-cover  mb-6"
+          style ={{borderRadius: "20px"}}
         />
 
         <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
@@ -176,6 +178,20 @@ const ArticleDetail = () => {
             displayUrl={`https://almonhna.sa/articles/${id}`}
             title={article.title}
             iconSize={20}
+          />
+          <BookmarkButton
+            item={{
+              id: article.id,
+              type: "article",
+              title: article.title,
+              excerpt: article.excerpt,
+              coverImage: article.cover_image_url,
+              authorName: article.profiles?.name || "",
+            }}
+          />
+          <LikeButton
+            contentId={article.id}
+            contentType="article"
             className="mr-auto"
           />
         </div>
@@ -206,22 +222,12 @@ const ArticleDetail = () => {
         </Link>
         
         <div className="prose prose-lg max-w-none">
-          <p className="text-xl text-muted-foreground mb-6">{article.excerpt}</p>
-          {/* <div className="site-content" style={{padding:"5px" , backgroundColor:"#f5f0e1d1" , fontSize :"15px !important"}} dangerouslySetInnerHTML={{ __html: cleanContentFont(article.content) }} /> */}
-      <div
-  className="
-    site-content
-    [&_*]:!font-sans
-    [&_*]:!text-gray-900
-    [&_h1]:!text-3xl
-    [&_h2]:!text-2xl
-    [&_h3]:!text-xl
-    [&_*]:!text-[17px]
-        [&_*]:!leading-[1.9]
-  "
-        style={{padding:"5px" , backgroundColor:"#f5f0e1d1"}}
-  dangerouslySetInnerHTML={{ __html: article.content }}
-/>
+          <p className="text-xl text-muted-foreground mb-6"  style={{textAlign: "justify"}}>{article.excerpt}</p>
+          <div
+            className="site-content [&_*]:!font-sans [&_*]:!text-gray-900 [&_h1]:!text-3xl [&_h2]:!text-2xl [&_h3]:!text-xl [&_*]:!text-[17px] [&_*]:!leading-[1.9]"
+            style={{padding:"5px", borderRadius: "20px" , backgroundColor:"#f5f0e1d1"}}
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
         </div>
       </article>
 
