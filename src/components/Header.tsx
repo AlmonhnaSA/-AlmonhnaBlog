@@ -138,7 +138,7 @@ export const Header = () => {
           <div className="flex items-center gap-8">
             <Link onClick={handleLogoClick}
               to="/" className="flex items-center gap-3">
-              <img src={finalLogo} alt="منحنى" className="h-14 w-14 rounded-full object-cover" style={{width: '11rem'}} />
+              <img src={finalLogo} alt="المُنحنى" className="h-14 w-14 rounded-full object-cover" style={{width: '11rem'}} />
               
             </Link>
 

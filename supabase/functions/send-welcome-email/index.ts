@@ -12,7 +12,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مرحباً بك في المنحنى</title>
+  <title>مرحباً بك في المُنحنى</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f4ee; direction: rtl;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f6f4ee; padding: 40px 0;">
