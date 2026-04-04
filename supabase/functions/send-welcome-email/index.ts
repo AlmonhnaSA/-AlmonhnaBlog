@@ -50,7 +50,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
                 <tr>
                   <td align="center" style="padding: 0 40px 32px;">
                     <p style="color: #5a7a7e; font-size: 16px; line-height: 28px; margin: 0;">
-                      يسعدنا انضمامك إلى فريق الكتّاب في منصة المنحنى
+                      يسعدنا انضمامك إلى فريق الكتّاب في منصة المُنحنى
                     </p>
                   </td>
                 </tr>
