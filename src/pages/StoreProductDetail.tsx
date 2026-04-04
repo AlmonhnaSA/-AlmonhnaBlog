@@ -271,7 +271,7 @@ const StoreProductDetail = () => {
             </div>
 
             {product.description && (
-              <p className="text-lg text-muted-foreground leading-relaxed">{product.description}</p>
+              <p className="text-lg text-muted-foreground leading-relaxed" style={{textAlign: "justify"}}>{product.description}</p>
             )}
 
             {/* Digital: show files for download */}
