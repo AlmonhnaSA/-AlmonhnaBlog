@@ -164,7 +164,7 @@ const createWelcomeEmail = (name: string, siteUrl: string) => `
           <tr>
             <td align="center" style="padding: 32px 20px 16px;">
               <p style="color: #8a9a9c; font-size: 13px; line-height: 22px; margin: 0;">
-                مع أطيب التحيات، فريق المنحنى
+                مع أطيب التحيات، فريق المُنحنى
               </p>
             </td>
           </tr>
