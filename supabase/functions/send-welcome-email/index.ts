@@ -227,12 +227,12 @@ Deno.serve(async (req) => {
         personalizations: [
           {
             to: [{ email }],
-            subject: '🎉 مرحباً بك في المنحنى - تم قبول طلبك!',
+            subject: '🎉 مرحباً بك في المُنحنى - تم قبول طلبك!',
           },
         ],
         from: {
           email: 'info@almonhna.sa',
-          name: 'المنحنى',
+          name: 'المُنحنى',
         },
         content: [
           {
