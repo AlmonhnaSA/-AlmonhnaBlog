@@ -93,6 +93,7 @@ export const Header = () => {
         productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else {
+      
       // Navigate to home page first, then scroll
       navigate("/");
       setTimeout(() => {
@@ -125,7 +126,7 @@ export const Header = () => {
         { label: "الأعمدة ", href: "#products", onClick: handleProductsClick },
     { label: "خدماتنا", href: "/news" },
     { label: "المقالات", href: "/articles" },
-    
+    //لغينا المحفوظات
     // { label: "المحفوظات", href: "/bookmarks" },
     { label: "المتجر", href: "/store" },
   ];
