@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          approved_at: string | null
           author_id: string
           content: string
           cover_image_url: string
@@ -31,6 +32,7 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          approved_at?: string | null
           author_id: string
           content: string
           cover_image_url: string
@@ -46,6 +48,7 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          approved_at?: string | null
           author_id?: string
           content?: string
           cover_image_url?: string
@@ -106,6 +109,7 @@ export type Database = {
       }
       news: {
         Row: {
+          approved_at: string | null
           author_id: string
           content: string
           cover_image_url: string
@@ -120,6 +124,7 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          approved_at?: string | null
           author_id: string
           content: string
           cover_image_url: string
@@ -134,6 +139,7 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          approved_at?: string | null
           author_id?: string
           content?: string
           cover_image_url?: string
