@@ -38,7 +38,7 @@ export const NewsSlider = () => {
           author:profiles!articles_author_id_fkey(name, photo_url)
         `)
         .eq("status", "approved")
-        .order("created_at", { ascending: false })
+        .order("approved_at", { ascending: false })
         .limit(5);
 
       if (error) throw error;

@@ -45,7 +45,7 @@ const Index = () => {
           )
         `)
         .eq("status", "approved")
-        .order("created_at", { ascending: false })
+        .order("approved_at", { ascending: false })
         .limit(20);
 
       if (error) throw error;

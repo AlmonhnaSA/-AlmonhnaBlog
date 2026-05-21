@@ -40,7 +40,7 @@ const News = () => {
           )
         `)
         .eq("status", "approved")
-        .order("created_at", { ascending: false });
+        .order("approved_at", { ascending: false });
 
       if (error) throw error;
       setNews(data || []);
