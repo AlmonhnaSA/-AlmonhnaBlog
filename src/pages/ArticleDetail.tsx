@@ -79,19 +79,31 @@ const ArticleDetail = () => {
       }
       el.setAttribute("content", content);
     };
-    const articleUrl = `https://www.almonhna.sa/articles/${id}`;
-    document.title = `${article.title} - المُنحنى`;
+    const articleUrl = `https://almonhna.sa/articles/${id}`;
+    const FALLBACK = "https://almonhna.sa/Monhanalogowithbackground.png";
+    let img = FALLBACK;
+    try {
+      if (article.cover_image_url && /^https?:\/\//i.test(article.cover_image_url)) {
+        const u = new URL(article.cover_image_url);
+        u.search = "";
+        u.pathname = u.pathname.replace("/storage/v1/object/sign/", "/storage/v1/object/public/");
+        img = u.toString();
+      }
+    } catch { /* keep fallback */ }
+    document.title = `${article.title} | المُنحنى`;
     setMeta("description", article.excerpt);
     setMeta("og:type", "article");
-    setMeta("og:title", article.title);
+    setMeta("og:title", `${article.title} | المُنحنى`);
     setMeta("og:description", article.excerpt);
-    setMeta("og:image", article.cover_image_url);
+    setMeta("og:image", img);
+    setMeta("og:image:width", "1200");
+    setMeta("og:image:height", "630");
     setMeta("og:url", articleUrl);
     setMeta("og:site_name", "المُنحنى");
     setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", article.title);
+    setMeta("twitter:title", `${article.title} | المُنحنى`);
     setMeta("twitter:description", article.excerpt);
-    setMeta("twitter:image", article.cover_image_url);
+    setMeta("twitter:image", img);
 
     return () => {
       document.title = "المُنحنى";
