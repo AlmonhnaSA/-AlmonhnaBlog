@@ -92,7 +92,7 @@ const shareLink = type  === "article" ? "articles" :  "news";
                 <span>{formattedDate}</span>
               </div>
               <ShareButton
-                url={`https://almonhna.sa/api/og-share?type=${shareLink}&id=${id}`}
+                url={`https://almonhna.sa/api/og-share?type=${shareLink}&id=${id}&v=1`}
                 displayUrl={fullUrl}
                 title={title}
               />
