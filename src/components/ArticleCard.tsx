@@ -45,11 +45,18 @@ const shareLink = type  === "article" ? "articles" :  "news";
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-0">
       <div className="flex flex-row gap-4 p-4">
         <Link to={link} className="w-32 h-32 flex-shrink-0 overflow-hidden rounded-md bg-muted relative block">
-          <img
+          {/* <img
             src={coverImage}
             alt={title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          /> */}
+          <img
+              src={coverImage}
+              alt={title}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
           {productType && (
             <Badge className={`absolute top-2 right-2 ${badgeColor} text-primary-foreground border-0`}>
               <Star className="w-3 h-3 ml-1" />
