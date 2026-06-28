@@ -79,17 +79,27 @@ const ArticleDetail = () => {
       }
       el.setAttribute("content", content);
     };
-    const articleUrl = `https://almonhna.sa/articles/${id}`;
-    const FALLBACK = "https://almonhna.sa/Monhanalogowithbackground.png";
+    const articleUrl = `https://www.almonhna.sa/articles/${id}`;
+    const FALLBACK = "https://www.almonhna.sa/Monhanalogowithbackground.png";
     let img = FALLBACK;
     try {
       if (article.cover_image_url && /^https?:\/\//i.test(article.cover_image_url)) {
         const u = new URL(article.cover_image_url);
         u.search = "";
-        u.pathname = u.pathname.replace("/storage/v1/object/sign/", "/storage/v1/object/public/");
+        u.pathname = u.pathname
+          .replace("/storage/v1/object/sign/", "/storage/v1/object/public/")
+          .replace("/storage/v1/render/image/public/", "/storage/v1/object/public/");
+        if (u.pathname.startsWith("/storage/v1/object/public/")) {
+          u.pathname = u.pathname.replace(
+            "/storage/v1/object/public/",
+            "/storage/v1/render/image/public/",
+          );
+          u.search = "?width=1200&height=630&resize=cover&quality=75";
+        }
         img = u.toString();
       }
     } catch { /* keep fallback */ }
+
     document.title = `${article.title} | المُنحنى`;
     setMeta("description", article.excerpt);
     setMeta("og:type", "article");
