@@ -23,9 +23,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userAgent = (req.headers["user-agent"] || "").toLowerCase();
   const isCrawler = /(whatsapp|facebookexternalhit|twitterbot|x\.com|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bot|crawler|spider)/i.test(userAgent);
 
-  if (!isCrawler) {
-    return res.redirect(302, redirectUrl);
-  }
+  // if (!isCrawler) {
+  //   return res.redirect(302, redirectUrl);
+  // }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
