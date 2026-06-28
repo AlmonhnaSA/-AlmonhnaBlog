@@ -50,25 +50,29 @@ Deno.serve(async (req) => {
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>${escapeHtml(data.title)} - ${SITE_NAME}</title>
+  <title>${escapeHtml(data.title)} | ${SITE_NAME}</title>
   <meta name="description" content="${escapeHtml(data.excerpt)}">
 
   <!-- Open Graph -->
   <meta property="og:type" content="article">
-  <meta property="og:title" content="${escapeHtml(data.title)}">
+  <meta property="og:title" content="${escapeHtml(data.title)} | ${SITE_NAME}">
   <meta property="og:description" content="${escapeHtml(data.excerpt)}">
   <meta property="og:image" content="${data.cover_image_url}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="${escapeHtml(data.title)}">
   <meta property="og:url" content="${redirectUrl}">
   <meta property="og:site_name" content="${SITE_NAME}">
+  <meta property="og:locale" content="ar_AR">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${escapeHtml(data.title)}">
+  <meta name="twitter:title" content="${escapeHtml(data.title)} | ${SITE_NAME}">
   <meta name="twitter:description" content="${escapeHtml(data.excerpt)}">
   <meta name="twitter:image" content="${data.cover_image_url}">
+  <link rel="icon" href="${SITE_URL}/favicon.ico">
+  <link rel="apple-touch-icon" href="${SITE_URL}/favicon.ico">
 
   <meta http-equiv="refresh" content="0;url=${redirectUrl}">
   <script>window.location.href = "${redirectUrl}";</script>
