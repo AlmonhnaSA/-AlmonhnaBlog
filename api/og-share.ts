@@ -1,7 +1,71 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return res.status(200).send("API WORKS");
+const SITE_URL = "https://almonhna.sa";
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY!
+);
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  try {
+    let type = (req.query.type as string)?.toLowerCase();
+    const id = req.query.id as string;
+
+    if (!type || !id) {
+      return res.status(400).json({
+        error: "Missing type or id",
+        type,
+        id,
+      });
+    }
+
+    if (type === "articles") type = "article";
+    if (type !== "article" && type !== "news") type = "article";
+
+    const table = type === "article" ? "articles" : "news";
+
+    // نجلب البيانات من Supabase
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    // إذا حدث خطأ نعرضه مباشرة
+    if (error) {
+      return res.status(500).json({
+        message: "Supabase Error",
+        error,
+      });
+    }
+
+    // إذا لم نجد بيانات
+    if (!data) {
+      return res.status(404).json({
+        message: "No data found",
+        table,
+        id,
+      });
+    }
+
+    // نعرض البيانات كاملة للتشخيص
+    return res.status(200).json({
+      success: true,
+      table,
+      data,
+    });
+
+  } catch (err: any) {
+    return res.status(500).json({
+      message: "Server Error",
+      error: err.message,
+    });
+  }
 }
 
 
