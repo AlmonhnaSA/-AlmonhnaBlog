@@ -254,7 +254,7 @@ const ArticleDetail = () => {
           </div>
           <div
             className="site-content article-body article-surface"
-            style={{ padding: "5px", borderRadius: "20px", ["--article-font-size" as any]: `${fontSize}px` }}
+            style={{ padding: "15px", borderRadius: "20px", ["--article-font-size" as any]: `${fontSize}px` }}
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </div>
