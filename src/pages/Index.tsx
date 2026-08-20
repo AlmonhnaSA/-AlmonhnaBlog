@@ -78,12 +78,12 @@ const Index = () => {
       </section>
 
         {/* Products Section */}
-        <div className="rounded-xl surface-alt" id="products-section">
+        <div className="rounded-xl surface-alt mb-7" id="products-section">
           <ProductsSlider />
         </div>
 
         {/* Latest Articles */}
- <section className="py-12  bg-muted/30">
+ <section className="py-7  bg-muted/30 rounded-xl">
       <div className="container " style={{paddingRight:'1rem'}}>
         <h2 className="text-3xl font-bold mb-8 text-start text-brand">أحدث المقالات </h2>
         </div>
