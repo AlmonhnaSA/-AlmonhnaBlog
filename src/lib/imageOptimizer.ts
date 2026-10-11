@@ -25,13 +25,16 @@ export const installImageOptimizer = () => {
   const nativeSet = Element.prototype.setAttribute;
 
   const apply = (img: HTMLImageElement, url: string) => {
+    if (originals.get(img) === url) return; // avoid re-requesting the same image
     originals.set(img, url);
     if (!img.hasAttribute("decoding")) nativeSet.call(img, "decoding", "async");
+    // Off-screen by default; images explicitly marked eager/high priority keep loading first.
+    if (!img.hasAttribute("loading") && img.getAttribute("fetchpriority") !== "high") nativeSet.call(img, "loading", "lazy");
     if (!img.hasAttribute("srcset")) {
       nativeSet.call(img, "srcset", WIDTHS.map((w) => `${variant(url, w)} ${w}w`).join(", "));
       if (!img.hasAttribute("sizes")) nativeSet.call(img, "sizes", "(max-width: 640px) 100vw, (max-width: 1200px) 60vw, 1000px");
     }
-    nativeSet.call(img, "src", variant(url, 1280));
+    nativeSet.call(img, "src", variant(url, 960));
   };
 
   Element.prototype.setAttribute = function (name: string, value: string) {

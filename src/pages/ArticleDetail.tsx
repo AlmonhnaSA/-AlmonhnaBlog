@@ -253,6 +253,9 @@ const ArticleDetail = () => {
             <img
               src={article.cover_image_url}
               alt={article.title}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-72 md:h-96 object-cover"
             />
           </div>
