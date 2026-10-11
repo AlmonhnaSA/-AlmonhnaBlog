@@ -1,7 +1,7 @@
 export const Footer = () => (
   <footer className="site-footer">
     <div className="container mx-auto px-6">
-      <span>  L-MR-2026-001359 من الرياض للذاكرة - الرياض - المملكة العربية السعودية - ترخيص رقم    </span>
+      <span>   من الرياض للذاكرة - الرياض - المملكة العربية السعودية - ترخيص رقم L-MR-2026-001359    </span>
       {/* <span aria-hidden="true">•</span>
        <span> الهيئة العامة لتنظيم الإعلام </span>
       <span aria-hidden="true">•</span>
