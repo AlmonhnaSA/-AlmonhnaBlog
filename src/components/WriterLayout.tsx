@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LayoutDashboard, FileText, Newspaper, User, LogOut, Settings, Home } from "lucide-react";
+import { LayoutDashboard, FileText, Newspaper, User, LogOut, Settings, Home, Quote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface WriterLayoutProps {
@@ -75,6 +75,7 @@ export const WriterLayout = ({ children }: WriterLayoutProps) => {
     { path: "/writer", icon: LayoutDashboard, label: "لوحة التحكم" },
     { path: "/writer/articles", icon: FileText, label: "مقالاتي" },
     { path: "/writer/news", icon: Newspaper, label: "خدماتي" },
+    { path: "/writer/quotes", icon: Quote, label: "بطاقة اقتباس" },
     { path: "/writer/profile", icon: User, label: "الملف الشخصي" },
     { path: "/writer/settings", icon: Settings, label: "الإعدادات" },
   ];

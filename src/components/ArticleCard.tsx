@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ShareButton } from "@/components/ShareDialog";
+import { BookmarkButton } from "@/components/BookmarkButton";
 
 
 interface ArticleCardProps {
@@ -18,6 +19,9 @@ interface ArticleCardProps {
   };
   date: string;
   type: "article" | "news";
+  categories?: string[];
+  sequencePoints?: string[];
+  variant?: "default" | "archive";
 }
 
 export const ArticleCard = ({
@@ -28,7 +32,11 @@ export const ArticleCard = ({
   author,
   date,
   type,
+  categories,
+  sequencePoints,
+  variant = "default",
 }: ArticleCardProps) => {
+
   const formattedDate = new Date(date).toLocaleDateString("ar-EG", {
     year: "numeric",
     month: "long",
@@ -40,6 +48,38 @@ const shareLink = type  === "article" ? "articles" :  "news";
   const badgeColor = "bg-primary";
   
   const truncatedExcerpt = excerpt.length > 50 ? excerpt.substring(0, 50) + "..." : excerpt;
+
+  if (variant === "archive") {
+    return (
+      <article className="archive-article-card">
+        <Link to={link} className="archive-card-cover" aria-label={title}>
+          <img src={coverImage} alt={title} loading="lazy" decoding="async" width={160} height={160} />
+        </Link>
+        <div className="archive-card-content">
+          <Link to={link} className="archive-card-copy">
+            {categories && categories.length > 0 && <div className="archive-card-categories">{categories.slice(0, 3).map((category) => <span key={category}>{category}</span>)}</div>}
+            <h3>{title}</h3>
+            <p>{excerpt}</p>
+            {sequencePoints && sequencePoints.length > 0 && <div className="archive-card-sequence">{sequencePoints.slice(0, 5).map((point, index) => <span key={`${point}-${index}`}>{index > 0 && " ← "}{point}</span>)}</div>}
+          </Link>
+          <footer className="archive-card-footer">
+            <Link to={link} className="archive-card-author">
+              <Avatar className="h-6 w-6 shrink-0">
+                <AvatarImage src={author.photo} alt={author.name} />
+                <AvatarFallback className="archive-author-fallback">{author.name?.charAt(0) || <User className="h-3 w-3" />}</AvatarFallback>
+              </Avatar>
+              <span>{author.name}</span>
+            </Link>
+            <time dateTime={date}>{formattedDate}</time>
+            <div className="archive-card-actions">
+              <BookmarkButton size="sm" item={{ id, type, title, excerpt, coverImage, authorName: author.name }} />
+              <ShareButton url={`https://almonhna.sa/api/og-share?type=${shareLink}&id=${id}&v=1`} displayUrl={fullUrl} title={title} />
+            </div>
+          </footer>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-0">
@@ -67,13 +107,32 @@ const shareLink = type  === "article" ? "articles" :  "news";
         
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <Link to={link}>
+            {categories && categories.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {categories.slice(0, 3).map((c) => (
+                  <span key={c} className="text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-brand">{c}</span>
+                ))}
+              </div>
+            )}
             <h3 className="text-xl font-bold leading-tight line-clamp-2 transition-colors mb-2">
               {title}
             </h3>
             <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
               {truncatedExcerpt}
             </p>
+            {sequencePoints && sequencePoints.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-2">
+                {sequencePoints.slice(0, 5).map((p, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    {i > 0 && <span className="opacity-50">←</span>}
+                    <span>{p}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </Link>
+          
+
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-3 mt-auto">
             <Link to={link} className="flex items-center gap-2">

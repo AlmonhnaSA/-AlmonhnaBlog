@@ -29,11 +29,15 @@ export const Header = () => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   
   useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 36);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -51,7 +55,10 @@ export const Header = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   const loadUserProfile = async (userId: string) => {
@@ -136,27 +143,27 @@ export const Header = () => {
   ];
 
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+    <header className={`site-header sticky top-0 z-50 ${scrolled ? "is-scrolled" : ""}`}>
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="site-header-inner flex items-center justify-between">
           {/* Logo and Navigation */}
           <div className="flex items-center gap-8">
             <Link onClick={handleLogoClick}
               to="/" className="flex items-center gap-3">
-              <img src={finalLogo} alt="المُنحنى" className="h-14 w-14 rounded-full object-cover dark:hidden" style={{width: '11rem'}} />
-              <img src={darkLogo} alt="المُنحنى" className="h-14 w-14 rounded-full object-contain hidden dark:block" style={{width: '11rem'}} />
+              <img src={finalLogo} alt="المُنحنى" className="site-logo object-contain dark:hidden" />
+              <img src={darkLogo} alt="المُنحنى" className="site-logo hidden object-contain dark:block" />
               
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden lg:flex items-center gap-6">
               {navItems.map((item) => (
                 item.onClick ? (
                  <Link
   key={item.href}
   to={item.href}
   onClick={item.onClick}
-  className="text-foreground transition-colors font-medium"
+   className="site-nav-link text-foreground transition-colors font-medium"
 >
   {item.label}
 </Link>
@@ -165,7 +172,7 @@ export const Header = () => {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="text-foreground  transition-colors font-medium"
+                    className="site-nav-link text-foreground transition-colors font-medium"
                   >
                     {item.label}
                   </Link>
@@ -176,7 +183,7 @@ export const Header = () => {
 
           
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
             {user ? (
               <DropdownMenu>
@@ -232,11 +239,11 @@ export const Header = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center lg:hidden">
             <ThemeToggle />
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
               </Button>

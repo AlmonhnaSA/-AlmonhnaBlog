@@ -1,120 +1,60 @@
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
 import { NewsSlider } from "@/components/NewsSlider";
-import { TopWriters } from "@/components/TopWriters";
-import { ArticleCard } from "@/components/ArticleCard";
-import ProductsSlider from "@/components/ProductsSlider";
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-
-
-interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  cover_image_url: string;
-  created_at: string;
-  profiles: {
-    id: string;
-    name: string;
-    photo_url: string | null;
-  };
-}
+import HomeHero from "@/components/home/HomeHero";
+import DailyStory from "@/components/home/DailyStory";
+import ColumnsTrail from "@/components/home/ColumnsTrail";
+import LatestArticles from "@/components/home/LatestArticles";
+import CategoryMosaic from "@/components/home/CategoryMosaic";
+import HomeTimelines from "@/components/home/HomeTimelines";
+import WritersTrail from "@/components/home/WritersTrail";
+import AskSection from "@/components/home/AskSection";
+import NumberStory from "@/components/home/NumberStory";
+import AudioSection from "@/components/home/AudioSection";
+import Reveal from "@/components/motion/Reveal";
+import Footer from "@/components/Footer";
 
 const Index = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchArticles();
-  }, []);
-
-  const fetchArticles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("articles")
-        .select(`
-          *,
-          profiles (
-            id,
-            name,
-            photo_url
-          )
-        `)
-        .eq("status", "approved")
-        .order("approved_at", { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setArticles(data || []);
-    } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل المقالات",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-clip">
       <TopBar />
       <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <div>
-            <NewsSlider />
-          </div>
-          <div>
-            <TopWriters />
-          </div>
-      </section>
 
-        {/* Products Section */}
-        <div className="rounded-xl surface-alt mb-7" id="products-section">
-          <ProductsSlider />
-        </div>
+      <main>
+        <HomeHero />
 
-        {/* Latest Articles */}
- <section className="py-7  bg-muted/30 rounded-xl">
-      <div className="container " style={{paddingRight:'1rem'}}>
-        <h2 className="text-3xl font-bold mb-8 text-start text-brand">أحدث المقالات </h2>
-        </div>
+        <div id="home-flow" className="editorial-home">
+          <DailyStory />
+         <LatestArticles />
+<NumberStory />
+          <AudioSection />
+           <HomeTimelines />
+          <ColumnsTrail />
+          <CategoryMosaic />
+         
+
+          {/* خدماتنا */}
+          {/* <section className="editorial-services-section py-16 md:py-24">
+            <div className="container mx-auto px-6">
+              <Reveal variant="clip">
+                <div className="mb-8 md:mb-10 flex items-end justify-between gap-5">
+                  <div>
+                    <p className="editorial-kicker">نافذة أخرى</p>
+                    <h2 className="editorial-heading mt-2">خدماتنا</h2>
+                  </div>
+                  <span className="editorial-index">٠٦</span>
+                </div>
+                <NewsSlider />
+              </Reveal>
+            </div>
+          </section> */}
+
+          <WritersTrail />
           
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
-              {articles.map((article) => (
-                <ArticleCard
-                  key={article.id}
-                  id={article.id}
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  coverImage={article.cover_image_url}
-                  author={{
-                    name: article.profiles.name,
-                    photo: article.profiles.photo_url || undefined,
-                  }}
-                  date={article.created_at}
-                  type="article"
-                />
-              ))}
-            </div>
-          )}
-        </section>
+          <AskSection />
+        </div>
       </main>
+      <Footer />
     </div>
   );
 };

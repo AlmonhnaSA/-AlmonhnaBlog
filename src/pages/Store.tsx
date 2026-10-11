@@ -14,6 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+const remainingLabel = (n: number) => {
+  if (n === 1) return "يتبقّى مقال واحد";
+  if (n === 2) return "يتبقّى مقالان";
+  if (n <= 10) return `يتبقّى ${n} مقالات`;
+  return `يتبقّى ${n} مقالاً`;
+};
 
 const Store = () => {
   const [userArticleCount, setUserArticleCount] = useState(0);
@@ -144,6 +150,34 @@ const Store = () => {
         <div className="container">
           <h1 className="text-4xl font-bold mb-2">المتجر</h1>
 
+          {userChecked && isWriter && products && products.length > 0 && (() => {
+            const next = [...products]
+              .filter((p) => p.required_articles_count > userArticleCount)
+              .sort((a, b) => a.required_articles_count - b.required_articles_count)[0];
+            const max = Math.max(...products.map((p) => p.required_articles_count || 0), userArticleCount, 1);
+            const pct = Math.min((userArticleCount / max) * 100, 100);
+            return (
+              <div className="bg-card border border-border rounded-2xl p-5 md:p-6 mb-8 mt-4 flex flex-col md:flex-row md:items-center gap-5 md:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">نشرتَ {userArticleCount} مقالات</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {next
+                      ? `${remainingLabel(next.required_articles_count - userArticleCount).replace("يتبقّى ", "")} يفصلك عن «${next.name}»`
+                      : "كل منتجات المتجر متاحة لك"}
+                  </p>
+                </div>
+                <div className="w-full md:w-1/2">
+                  <p className="text-xs text-muted-foreground mb-2">رصيد الكاتب</p>
+                  <div className="h-3 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-left">{userArticleCount} من {max}</p>
+                </div>
+              </div>
+            );
+          })()}
+
+
           {products && products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
               {products.map((product) => {
@@ -224,36 +258,38 @@ const Store = () => {
                         )}
 
                         {/* Files */}
-                        <div className="mt-auto pt-2 flex items-center justify-between gap-2">
-                        <div className="mt-auto flex flex-wrap gap-2 pt-3">
-                          {productFiles.map((file) => (
-                            <Button
-                              key={file.id}
-                              size="sm"
-                              disabled={!canDownload}
-                              onClick={(e) =>
-                                handleDownload(
-                                  e,
-                                  file.file_url,
-                                  file.file_name,
-                                  product.required_articles_count
-                                )
-                              }
-                            >
-                              <Download className="w-3 h-3 ml-1" />
-                              {file.file_name}
-                            </Button>
-                          ))}
+                        <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+                          {isWriter ? (
+                            (() => {
+                              const req = product.required_articles_count || 0;
+                              const remaining = Math.max(req - userArticleCount, 0);
+                              const pct = req > 0 ? Math.min((userArticleCount / req) * 100, 100) : 100;
+                              return (
+                                <>
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                      remaining === 0
+                                        ? "bg-secondary/15 text-secondary"
+                                        : "bg-muted text-muted-foreground"
+                                    }`}
+                                  >
+                                    {remaining === 0 ? "متاح الآن" : remainingLabel(remaining)}
+                                  </span>
+                                  <div className="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${remaining === 0 ? "bg-secondary" : "bg-primary"}`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                </>
+                              );
+                            })()
+                          ) : (
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <FileText className="w-3 h-3" /> يتطلب {product.required_articles_count} مقالات
+                            </span>
+                          )}
                         </div>
-
-                        <div className="flex justify-between mt-3">
-                       
-<span className="flex items-center gap-1 text-xs text-muted-foreground">
-  <FileText className="w-3 h-3" /> يتطلب {product.required_articles_count} مقالات
-</span>
-                         
-                        </div>
-                                                  </div>
 
                       </div>
                     </div>

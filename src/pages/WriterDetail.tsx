@@ -7,6 +7,8 @@ import { User, Linkedin, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArticleCard } from "@/components/ArticleCard";
+import WriterKnowledgeProfile from "@/components/writer/WriterKnowledgeProfile";
+
 
 const WriterDetail = () => {
   const { id } = useParams();
@@ -196,7 +198,10 @@ const WriterDetail = () => {
           </div>
         </div>
 
+        {id && <WriterKnowledgeProfile writerId={id} />}
+
         {/* ✅ أزرار الفلترة */}
+
         <div className="my-6">
           <div className="flex gap-4 justify-center">
             <Button
@@ -211,12 +216,12 @@ const WriterDetail = () => {
             >
               المقالات
             </Button>
-            <Button
+            {/* <Button
               variant={filter === "news" ? "default" : "outline"}
               onClick={() => setFilter("news")}
             >
               خدماتنا
-            </Button>
+            </Button> */}
           </div>
         </div>
 

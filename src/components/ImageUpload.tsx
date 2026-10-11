@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Upload, Link } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { compressImage } from "@/lib/imageOptimizer";
 
 interface ImageUploadProps {
   value: string;
@@ -53,12 +54,13 @@ export const ImageUpload = ({ value, onChange, label = "رابط الصورة" }
         return;
       }
 
-      const fileExt = file.name.split('.').pop();
+      const optimized = await compressImage(file);
+      const fileExt = optimized.name.split('.').pop();
       const fileName = `${userData.user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError, data } = await supabase.storage
         .from('images')
-        .upload(fileName, file);
+        .upload(fileName, optimized, { contentType: optimized.type });
 
       if (uploadError) {
         throw uploadError;

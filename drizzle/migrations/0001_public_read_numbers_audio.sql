@@ -1,0 +1,12 @@
+GRANT SELECT ON public.number_stories TO anon, authenticated;
+GRANT SELECT ON public.audio_episodes TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.number_stories TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.audio_episodes TO authenticated;
+GRANT ALL ON public.number_stories TO service_role;
+GRANT ALL ON public.audio_episodes TO service_role;
+DROP POLICY IF EXISTS "Public can view active number stories" ON public.number_stories;
+DROP POLICY IF EXISTS "Public can view active audio episodes" ON public.audio_episodes;
+CREATE POLICY "Anyone can view active number stories" ON public.number_stories FOR SELECT TO anon, authenticated USING (is_active = true);
+CREATE POLICY "Admins view all number stories" ON public.number_stories FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::user_role));
+CREATE POLICY "Anyone can view active audio episodes" ON public.audio_episodes FOR SELECT TO anon, authenticated USING (is_active = true);
+CREATE POLICY "Admins view all audio episodes" ON public.audio_episodes FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::user_role));

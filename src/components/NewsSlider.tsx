@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface NewsItem {
   id: string;
@@ -23,7 +22,6 @@ export const NewsSlider = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchNews();
@@ -44,11 +42,7 @@ export const NewsSlider = () => {
       if (error) throw error;
       setNews(data || []);
     } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل خدماتنا",
-        variant: "destructive",
-      });
+      console.error("Error loading services:", error);
     } finally {
       setLoading(false);
     }
@@ -71,30 +65,32 @@ export const NewsSlider = () => {
     setCurrentIndex((prev) => (prev + 1) % news.length);
   };
 
-  if (loading || news.length === 0) {
+  if (loading) {
     return (
       <div className="relative h-[500px] bg-muted animate-pulse rounded-lg" />
     );
   }
 
+  if (news.length === 0) return null;
+
   const currentNews = news[currentIndex];
 
   return (
-  <div style={{borderRadius : '30px'}} className="relative h-[500px] sm:h-[400px] xs:h-[300px] overflow-hidden">
+  <div className="services-editorial group relative h-[520px] overflow-hidden md:h-[620px]">
   <img
     src={currentNews.cover_image_url}
     alt={currentNews.title}
-    className="absolute inset-0 w-full h-full object-fill object-center"
+    className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-1000 group-hover:scale-[1.025]"
   />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+      <div className="services-editorial-shade absolute inset-0" />
       
-      <div className="absolute bottom-0 right-0 left-0 p-8 text-white">
+      <div className="services-editorial-copy absolute bottom-0 right-0 left-0 p-7 md:p-12">
         <Link to={`/articles/${currentNews.id}`}>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 hover:text-accent transition-colors">
+          <h3 className="max-w-4xl text-3xl font-bold leading-snug transition-transform duration-500 group-hover:-translate-y-1 md:text-5xl">
             {currentNews.title}
-          </h2>
+          </h3>
         </Link>
-        <p className="text-lg mb-4 line-clamp-2 opacity-90">
+        <p className="mb-5 mt-4 max-w-2xl text-base leading-relaxed opacity-85 md:text-lg">
           {currentNews.excerpt}
         </p>
         <div className="flex items-center justify-between" style={{paddingTop:'5px'}}>
@@ -105,7 +101,7 @@ export const NewsSlider = () => {
             </Avatar>
             <span className="text-sm font-medium">{currentNews.author?.name}</span>
           </div>
-          <span className="text-sm opacity-80">
+          <span className="hidden text-sm opacity-80 sm:block">
             {new Date(currentNews.created_at).toLocaleDateString("ar-EG", {
               year: "numeric",
               month: "long",
@@ -119,7 +115,7 @@ export const NewsSlider = () => {
         variant="ghost"
         size="icon"
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/20 text-primary-foreground opacity-0 backdrop-blur-md transition-opacity hover:bg-background/30 group-hover:opacity-100"
       >
         <ChevronLeft className="h-6 w-6" />
       </Button>
@@ -128,18 +124,19 @@ export const NewsSlider = () => {
         variant="ghost"
         size="icon"
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/20 text-primary-foreground opacity-0 backdrop-blur-md transition-opacity hover:bg-background/30 group-hover:opacity-100"
       >
         <ChevronRight className="h-6 w-6" />
       </Button>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute left-7 top-7 flex gap-2 md:left-12 md:top-12">
         {news.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === currentIndex ? "bg-white w-8" : "bg-white/50"
+            aria-label={`الخدمة ${index + 1}`}
+            className={`h-1.5 rounded-full transition-all ${
+              index === currentIndex ? "w-10 bg-primary" : "w-4 bg-primary-foreground/50"
             }`}
           />
         ))}

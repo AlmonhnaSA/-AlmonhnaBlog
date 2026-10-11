@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789981026008,
+      "tag": "0000_create_number_stories_and_audio_episodes",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790232253246,
+      "tag": "0001_public_read_numbers_audio",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790680555117,
+      "tag": "0002_news_gallery",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791466891048,
+      "tag": "0003_private_service_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791467364180,
+      "tag": "0004_restrict_service_request_grants",
+      "breakpoints": true
+    }
+  ]
+}

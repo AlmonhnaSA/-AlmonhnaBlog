@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
+import { AuthVisual } from "@/components/auth/AuthVisual";
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -57,12 +58,14 @@ const Register = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <Header />
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <main className="auth-page-shell">
+        <AuthVisual mode="register" />
+        <section className="auth-form-pane">
+        <Card className="auth-form-card w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center"> سجل عبر</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">سجّل في المُنحنى</CardTitle>
             <CardDescription className="text-center">
               سجّل ككاتب وابدأ بنشر مقالاتك وأخبارك
             </CardDescription>
@@ -130,8 +133,9 @@ const Register = () => {
             </form>
           </CardContent>
         </Card>
-      </div>
-    </>
+        </section>
+      </main>
+    </div>
   );
 };
 

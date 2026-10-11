@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
+import { AuthVisual } from "@/components/auth/AuthVisual";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -75,7 +76,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
@@ -130,9 +131,10 @@ const Auth = () => {
       <TopBar />
       <Header />
       
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto">
-          <Card>
+      <main className="auth-page-shell">
+        <AuthVisual mode="login" />
+        <section className="auth-form-pane">
+          <Card className="auth-form-card w-full max-w-md">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">
                 {isRecoveryMode ? "إعادة تعيين كلمة المرور" : "مرحباً بك في المُنحنى"}
@@ -187,9 +189,9 @@ const Auth = () => {
                   
                   <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
                     <DialogTrigger asChild>
-                      {/* <Button variant="link" className="w-full mt-2">
+                      <Button type="button" variant="link" className="w-full mt-2">
                         نسيت كلمة المرور؟
-                      </Button> */}
+                      </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
@@ -219,8 +221,8 @@ const Auth = () => {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };

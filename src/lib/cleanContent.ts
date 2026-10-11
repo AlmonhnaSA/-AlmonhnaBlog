@@ -8,27 +8,27 @@ export function cleanContentFont(html: string): string {
 
   let result = html;
 
-  // Remove font-family from inline style with double quotes
-  result = result.replace(/style="([^"]*)"/gi, (_match, styleValue: string) => {
-    const cleaned = styleValue
+  const stripFontRules = (styleValue: string) =>
+    styleValue
       .split(";")
-      .filter((rule) => !rule.trim().toLowerCase().startsWith("font-family"))
+      .filter((rule) => {
+        const prop = rule.split(":")[0]?.trim().toLowerCase() || "";
+        return prop !== "font-family" && prop !== "font";
+      })
       .join(";");
-    return `style="${cleaned}"`;
-  });
 
-  // Remove font-family from inline style with single quotes
-  result = result.replace(/style='([^']*)'/gi, (_match, styleValue: string) => {
-    const cleaned = styleValue
-      .split(";")
-      .filter((rule) => !rule.trim().toLowerCase().startsWith("font-family"))
-      .join(";");
-    return `style='${cleaned}'`;
-  });
+  // Remove font declarations from inline style with double quotes
+  result = result.replace(/style="([^"]*)"/gi, (_m, v: string) => `style="${stripFontRules(v)}"`);
 
-  // Remove <font face="..."> attribute (TinyMCE legacy)
-  result = result.replace(/(<font\b[^>]*)\sface="[^"]*"/gi, "$1");
-  result = result.replace(/(<font\b[^>]*)\sface='[^']*'/gi, "$1");
+  // Remove font declarations from inline style with single quotes
+  result = result.replace(/style='([^']*)'/gi, (_m, v: string) => `style='${stripFontRules(v)}'`);
+
+  // Remove legacy <font> wrappers entirely, keeping their inner content
+  result = result.replace(/<font\b[^>]*>/gi, "").replace(/<\/font>/gi, "");
+
+  // Remove font-family declarations inside embedded <style> blocks
+  result = result.replace(/font-family\s*:[^;"'}]*;?/gi, "");
 
   return result;
 }
+

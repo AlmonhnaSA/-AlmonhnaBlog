@@ -11,6 +11,13 @@ import RichTextEditor from "@/components/ui/rich-text-editor";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import ArticleExtras, {
+  ArticleExtrasValue,
+  emptyExtras,
+  loadArticleExtras,
+  saveArticleExtras,
+} from "@/components/editor/ArticleExtras";
+import { parseSequencePoints } from "@/lib/articleExtras";
 
 interface Product {
   id: string;
@@ -22,6 +29,7 @@ const AdminAddEditArticle = () => {
   const { id } = useParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [authorId, setAuthorId] = useState<string>("");
+  const [extras, setExtras] = useState<ArticleExtrasValue>(emptyExtras);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -31,6 +39,7 @@ const AdminAddEditArticle = () => {
     content: "",
     product_id: "",
   });
+
 
   useEffect(() => {
     loadData();
@@ -59,8 +68,16 @@ const AdminAddEditArticle = () => {
           content: article.content,
           product_id: article.product_id || "",
         });
+        const saved = await loadArticleExtras(id);
+        setExtras({ ...saved, sequencePoints: parseSequencePoints((article as any).sequence_points) });
       }
     }
+  };
+
+  const insertMarker = (anchorKey: string, question: string) => {
+    const marker = `<div class="knowledge-link-block" data-knowledge-link="${anchorKey}">${question || "وصلة معرفية"}</div>`;
+    setFormData((prev) => ({ ...prev, content: `${prev.content || ""}${marker}` }));
+    toast({ title: "تمت الإضافة", description: "أُدرجت الوصلة في نهاية المحتوى، يمكنك تحريكها داخل المحرر" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,6 +93,8 @@ const AdminAddEditArticle = () => {
     }
 
     if (id) {
+      const sequence = extras.sequencePoints.map((p) => p.trim()).filter(Boolean);
+
       const { error } = await supabase
         .from("articles")
         .update({
@@ -84,6 +103,7 @@ const AdminAddEditArticle = () => {
           cover_image_url: formData.cover_image_url,
           content: formData.content,
           product_id: formData.product_id || null,
+          sequence_points: sequence.length >= 3 ? sequence.slice(0, 5) : [],
         })
         .eq("id", id);
 
@@ -96,6 +116,8 @@ const AdminAddEditArticle = () => {
         return;
       }
 
+      await saveArticleExtras(id, extras);
+
       toast({
         title: "تم التحديث",
         description: "تم تحديث المقال بنجاح",
@@ -104,6 +126,7 @@ const AdminAddEditArticle = () => {
 
     navigate("/admin/articles");
   };
+
 
   return (
     <div className="space-y-6">
@@ -179,6 +202,17 @@ const AdminAddEditArticle = () => {
                 placeholder="اكتب محتوى المقال هنا..."
               />
             </div>
+
+            <div className="pt-4 border-t border-border">
+              <ArticleExtras
+                value={extras}
+                onChange={setExtras}
+                currentArticleId={id}
+                onInsertMarker={insertMarker}
+              />
+            </div>
+
+
 
             <div className="flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={() => navigate("/admin/articles")}>

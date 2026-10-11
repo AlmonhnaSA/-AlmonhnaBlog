@@ -1,0 +1,1 @@
+ALTER TABLE public.timelines ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT '#00343A';

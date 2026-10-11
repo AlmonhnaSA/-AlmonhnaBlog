@@ -84,7 +84,7 @@ const Writers = () => {
             </AvatarFallback>
           </Avatar>
 
-          <div className="space-y-2 text-left">
+          <div className="space-y-2 text-right">
             <h3 className="text-xl font-bold hover:text-primary transition-colors">
               {writer.name}
             </h3>

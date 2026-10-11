@@ -1,22 +1,43 @@
 import { useParams, Link } from "react-router-dom";
-import { cleanContentFont } from "@/lib/cleanContent";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
-import { Calendar, User, Eye, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Calendar, User, Clock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { ShareButton } from "@/components/ShareDialog";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { LikeButton } from "@/components/LikeButton";
-import { TextZoomControl, DEFAULT_ARTICLE_FONT_SIZE } from "@/components/TextZoomControl";
-
-
+import { TextZoomControl, DEFAULT_ARTICLE_FONT_SIZE, type ReadingBackground } from "@/components/TextZoomControl";
+import ArticleContent from "@/components/article/ArticleContent";
+import ArticleSequence from "@/components/article/ArticleSequence";
+import StoryContinues from "@/components/article/StoryContinues";
+import AuthorCard from "@/components/article/AuthorCard";
+import { parseSequencePoints, readingTimeMinutes } from "@/lib/articleExtras";
 
 const ArticleDetail = () => {
   const { id } = useParams();
   const [fontSize, setFontSize] = useState(DEFAULT_ARTICLE_FONT_SIZE);
+ const [readingBackground, setReadingBackground] =
+  useState<ReadingBackground>(() => {
+    const saved = window.localStorage.getItem(
+      "almonhna-reading-background"
+    );
+
+    return saved === "ivory" ||
+      saved === "sage" ||
+      saved === "mist"
+      ? saved as ReadingBackground
+      : "paper";
+  });
+  
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleReadingBackground = (next: ReadingBackground) => {
+    setReadingBackground(next);
+    window.localStorage.setItem("almonhna-reading-background", next);
+  };
 
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", id],
@@ -45,6 +66,54 @@ const ArticleDetail = () => {
     },
   });
 
+  const { data: categories } = useQuery({
+    queryKey: ["article-categories", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("article_categories")
+        .select("categories:category_id ( id, name, slug )")
+        .eq("article_id", id!);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.categories).filter(Boolean);
+    },
+  });
+
+  const { data: knowledgeLinks } = useQuery({
+    queryKey: ["article-knowledge-links", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("article_knowledge_links")
+        .select(`
+          id, anchor_key, question, target_article_id,
+          target:target_article_id ( id, title, status, cover_image_url )
+        `)
+        .eq("article_id", id!);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const { data: continuations } = useQuery({
+    queryKey: ["article-continuations", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("article_continuations")
+        .select(`
+          id, display_order,
+          target:target_article_id ( id, title, excerpt, cover_image_url, status )
+        `)
+        .eq("article_id", id!)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => r.target)
+        .filter((t: any) => t && t.status === "approved");
+    },
+  });
+
   const { data: relatedArticles } = useQuery({
     queryKey: ["related-articles", article?.author_id, id],
     enabled: !!article?.author_id,
@@ -69,6 +138,7 @@ const ArticleDetail = () => {
       return (data || []).sort(() => Math.random() - 0.5).slice(0, 3);
     },
   });
+
   // Dynamic OG meta tags for social crawlers
   useEffect(() => {
     if (!article) return;
@@ -140,7 +210,7 @@ const ArticleDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background dot-background">
         <TopBar />
         <Header />
         <div className="container mx-auto px-4 py-8">
@@ -156,7 +226,7 @@ const ArticleDetail = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background dot-background">
         <TopBar />
         <Header />
         <div className="container mx-auto px-4 py-8 text-center">
@@ -166,31 +236,62 @@ const ArticleDetail = () => {
     );
   }
 
-  
+  const sequencePoints = parseSequencePoints((article as any).sequence_points);
+  const minutes = readingTimeMinutes(article.content || "");
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dot-background">
       <TopBar />
       <Header />
-      
-      <article className="container mx-auto px-4 py-8 max-w-4xl">
-        <img
-          src={article.cover_image_url}
-          alt={article.title}
-          className="w-full h-96 object-cover  mb-6"
-          style ={{borderRadius: "20px"}}
-        />
 
-        <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
-
-        <div className="flex items-center gap-6 text-muted-foreground mb-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            <span>{new Date(article.created_at).toLocaleDateString("ar-EG", {
-              year: "numeric",
-              month: "long",
-              day: "numeric"
-            })}</span>
+      <article className="ArticleContainer article-editorial container mx-auto px-4 py-8 max-w-4xl">
+        <div className="article-head">
+          <div
+            className="article-head-media overflow-hidden zoom-media"
+            style={{ borderRadius: "20px" }}
+          >
+            <img
+              src={article.cover_image_url}
+              alt={article.title}
+              className="w-full h-72 md:h-96 object-cover"
+            />
           </div>
+
+          <div className="article-head-text">
+        {categories && categories.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {categories.map((c: any) => (
+              <Link
+                key={c.id}
+                to={`/articles?category=${encodeURIComponent(c.slug)}`}
+                className="text-xs px-3 py-1 rounded-full bg-primary/15 text-brand hover:bg-primary/25 transition-colors"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        )}
+        
+        
+         <h1 className="text-3xl md:text-5xl font-bold leading-[1.35] mb-4">{article.title}</h1>
+
+        {article.excerpt?.trim() && (
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-6" style={{ textAlign: "justify" }}>
+            {article.excerpt}
+          </p>
+        )}
+
+        <div className="flex items-center gap-5 text-muted-foreground flex-wrap">
+          <Link to={`/writers/${article.profiles.id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            {article.profiles.photo_url ? (
+              <img src={article.profiles.photo_url} alt={article.profiles.name} className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </span>
+            )}
+            <span className="font-medium text-foreground">{article.profiles.name}</span>
+          </Link>
           {article.products && (
             <Link
               to={`/products/${article.products.id}`}
@@ -199,7 +300,18 @@ const ArticleDetail = () => {
               {article.products.name}
             </Link>
           )}
-          <ShareButton
+
+           <div className=" flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+           <span className="flex items-center gap-2"><Calendar className="w-4 h-4" />{new Date(article.approved_at || article.created_at).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}</span>
+           <span className="flex items-center gap-2"><Clock className="w-4 h-4" />{minutes} دقيقة قراءة</span>
+         </div>
+      
+        </div>
+        </div>
+      </div>
+
+     <div className="article-editorial-actions flex items-center gap-2">
+           <ShareButton
             url={`https://almonhna.sa/api/og-share?type=articles&id=${id}`}
             displayUrl={`https://almonhna.sa/articles/${id}`}
             title={article.title}
@@ -220,49 +332,37 @@ const ArticleDetail = () => {
             contentType="article"
             className="mr-auto"
           />
-        </div>
+     </div>
 
-        <Link
-          to={`/writers/${article.profiles.id}`}
-          className="flex items-center gap-3 mb-8 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
-        >
-          {article.profiles.photo_url ? (
-            <img
-              src={article.profiles.photo_url}
-              alt={article.profiles.name}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
-            </div>
-          )}
-          <div>
-            <p className="font-semibold">{article.profiles.name}</p>
-            {article.profiles.bio && (
-              <p className="text-sm text-muted-foreground line-clamp-1">
-                {article.profiles.bio}
-              </p>
-            )}
-          </div>
-        </Link>
-        
+        <ArticleSequence points={sequencePoints} contentRef={contentRef} />
+
         <div className="prose prose-lg max-w-none">
-          <p className="text-xl text-muted-foreground mb-6"  style={{textAlign: "justify"}}>{article.excerpt}</p>
           <div className="flex justify-end mb-3">
-            <TextZoomControl value={fontSize} onChange={setFontSize} />
+            <TextZoomControl value={fontSize} onChange={setFontSize} background={readingBackground} onBackgroundChange={handleReadingBackground} />
           </div>
-          <div
-            className="site-content article-body article-surface"
-            style={{ padding: "15px", borderRadius: "20px", ["--article-font-size" as any]: `${fontSize}px` }}
-            dangerouslySetInnerHTML={{ __html: article.content }}
+          <ArticleContent
+            html={article.content}
+            links={(knowledgeLinks || []) as any}
+            fontSize={fontSize}
+            background={readingBackground}
+            contentRef={contentRef}
           />
         </div>
 
       </article>
 
+      <StoryContinues items={(continuations || []) as any} />
+
+      <AuthorCard
+        id={article.profiles.id}
+        name={article.profiles.name}
+        photo={article.profiles.photo_url}
+        bio={article.profiles.bio}
+      />
+
+
       {relatedArticles && relatedArticles.length > 0 && (
-        <section className="container mx-auto px-4 pb-12 max-w-4xl">
+        <section className="ArticleContainer container mx-auto px-4 pb-12 max-w-4xl">
           <h2 className="text-2xl font-bold mb-6 border-b border-border pb-3">مقالات أخرى للكاتب</h2>
           <div className="grid gap-4">
             {relatedArticles.map((related: any) => (

@@ -3,19 +3,21 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 export const ThemeToggle = ({ className }: { className?: string }) => {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === "dark";
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       variant="ghost"
-      size="icon"
-      className={className}
-      aria-label={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
-      title={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
+      className={`theme-mode-toggle ${className || ""}`}
+      aria-label={isDark ? "التبديل إلى الوضع النهاري" : "التبديل إلى الوضع الليلي"}
+      title={isDark ? "التبديل إلى الوضع النهاري" : "التبديل إلى الوضع الليلي"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      <span className="theme-mode-icon" aria-hidden="true">
+        {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      </span>
+      <span>{isDark ? "ليلي" : "نهاري"}</span>
     </Button>
   );
 };

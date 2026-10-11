@@ -10,6 +10,7 @@ import RichTextEditor from "@/components/ui/rich-text-editor";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { GalleryUpload } from "@/components/GalleryUpload";
 
 export const AddEditNews = () => {
   const navigate = useNavigate();
@@ -22,6 +23,9 @@ export const AddEditNews = () => {
     title: "",
     excerpt: "",
     cover_image_url: "",
+    gallery_images: [] as string[],
+    gallery_title: "",
+    gallery_pdf_url: "",
     content: "",
   });
 
@@ -55,6 +59,9 @@ export const AddEditNews = () => {
           title: news.title,
           excerpt: news.excerpt,
           cover_image_url: news.cover_image_url,
+          gallery_images: Array.isArray(news.gallery_images) ? (news.gallery_images as string[]) : [],
+          gallery_title: news.gallery_title || "",
+          gallery_pdf_url: news.gallery_pdf_url || "",
           content: news.content,
         });
       }
@@ -64,7 +71,7 @@ export const AddEditNews = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.excerpt || !formData.cover_image_url) {
+    if (!formData.title || !formData.excerpt.trim() || !formData.cover_image_url) {
       toast({
         title: "خطأ",
         description: "يرجى ملء جميع الحقول المطلوبة",
@@ -163,6 +170,15 @@ export const AddEditNews = () => {
               value={formData.cover_image_url}
               onChange={(url) => setFormData({ ...formData, cover_image_url: url })}
               label="صورة الغلاف"
+            />
+
+            <GalleryUpload
+              images={formData.gallery_images}
+              onImagesChange={(gallery_images) => setFormData((p) => ({ ...p, gallery_images }))}
+              title={formData.gallery_title}
+              onTitleChange={(gallery_title) => setFormData((p) => ({ ...p, gallery_title }))}
+              pdfUrl={formData.gallery_pdf_url}
+              onPdfUrlChange={(gallery_pdf_url) => setFormData((p) => ({ ...p, gallery_pdf_url }))}
             />
 
             <div>

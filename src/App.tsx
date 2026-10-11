@@ -7,9 +7,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import Articles from "./pages/Articles";
 import News from "./pages/News";
 import Writers from "./pages/Writers";
+import AudioEpisodes from "./pages/AudioEpisodes";
+import NumbersArchive from "./pages/NumbersArchive";
 import ArticleDetail from "./pages/ArticleDetail";
 import NewsDetail from "./pages/NewsDetail";
 import WriterDetail from "./pages/WriterDetail";
@@ -44,7 +47,17 @@ import AdminPreviewArticle from "./pages/admin/PreviewArticle";
 import AdminPreviewNews from "./pages/admin/PreviewNews";
 import AdminEditArticle from "./pages/admin/AddEditArticle";
 import AdminEditNews from "./pages/admin/AddEditNews";
+import ManageCategories from "./pages/admin/ManageCategories";
+import ManageDailyStories from "./pages/admin/ManageDailyStories";
+import ManageAudienceQuestions from "./pages/admin/ManageAudienceQuestions";
+import ManageServiceRequests from "./pages/admin/ManageServiceRequests";
+import ManageTimelines from "./pages/admin/ManageTimelines";
+import ManageNumberStories from "./pages/admin/ManageNumberStories";
+import ManageAudioEpisodes from "./pages/admin/ManageAudioEpisodes";
+import ManageQuoteCards from "./pages/admin/ManageQuoteCards";
+import WriterQuoteCards from "./pages/writer/QuoteCards";
 import NotFound from "./pages/NotFound";
+
 
 
 const queryClient = new QueryClient();
@@ -61,11 +74,14 @@ const App = () => (
         <Route path="/setup" element={<Setup />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/articles/:id" element={<ArticleDetail />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/writers" element={<Writers />} />
+          <Route path="/audio" element={<AudioEpisodes />} />
+          <Route path="/numbers" element={<NumbersArchive />} />
           <Route path="/writers/:id" element={<WriterDetail />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
@@ -83,7 +99,15 @@ const App = () => (
           <Route path="/admin/products" element={<AdminLayout><ManageProducts /></AdminLayout>} />
           <Route path="/admin/products/add" element={<AdminLayout><AdminAddEditProduct /></AdminLayout>} />
           <Route path="/admin/products/edit/:id" element={<AdminLayout><AdminAddEditProduct /></AdminLayout>} />
+          <Route path="/admin/categories" element={<AdminLayout><ManageCategories /></AdminLayout>} />
+          <Route path="/admin/daily-stories" element={<AdminLayout><ManageDailyStories /></AdminLayout>} />
+          <Route path="/admin/questions" element={<AdminLayout><ManageAudienceQuestions /></AdminLayout>} />
+          <Route path="/admin/service-requests" element={<AdminLayout><ManageServiceRequests /></AdminLayout>} />
+          <Route path="/admin/timelines" element={<AdminLayout><ManageTimelines /></AdminLayout>} />
+          <Route path="/admin/numbers" element={<AdminLayout><ManageNumberStories /></AdminLayout>} />
+          <Route path="/admin/audio" element={<AdminLayout><ManageAudioEpisodes /></AdminLayout>} />
           <Route path="/admin/store" element={<AdminLayout><ManageStoreProducts /></AdminLayout>} />
+
           <Route path="/admin/store/add" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
           <Route path="/admin/store/edit/:id" element={<AdminLayout><AddEditStoreProduct /></AdminLayout>} />
           <Route path="/admin/store/requests" element={<AdminLayout><ManageProductRequests /></AdminLayout>} />
@@ -99,6 +123,8 @@ const App = () => (
           <Route path="/writer/news/edit/:id" element={<WriterLayout><WriterAddEditNews /></WriterLayout>} />
           <Route path="/writer/news/preview/:id" element={<WriterLayout><WriterPreviewNews /></WriterLayout>} />
           <Route path="/writer/profile" element={<WriterLayout><WriterProfile /></WriterLayout>} />
+          <Route path="/writer/quotes" element={<WriterLayout><WriterQuoteCards /></WriterLayout>} />
+          <Route path="/admin/quotes" element={<AdminLayout><ManageQuoteCards /></AdminLayout>} />
           <Route path="/writer/settings" element={<WriterLayout><WriterSettings /></WriterLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
