@@ -209,7 +209,7 @@ const Articles = () => {
       <TopBar />
       <Header />
 
-      <main className="articles-archive-main">
+      <main className="container mx-auto px-8 py-12">
         <div className="archive-page-heading">
           <h1 className="site-section-heading">
             جميع المقالات
