@@ -206,10 +206,10 @@ const AudioEpisodes = () => {
 
         <section className="audio-archive-intro">
 
-          <div className="audio-archive-kicker">
+          {/* <div className="audio-archive-kicker">
             <Headphones />
             <span>مسموع</span>
-          </div>
+          </div> */}
 
           <h1>
             أصواتٌ تُسمع
