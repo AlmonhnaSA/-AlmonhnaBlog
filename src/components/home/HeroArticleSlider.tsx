@@ -45,7 +45,7 @@ export const HeroArticleSlider = () => {
   return (
     <div className="hero-article-slider group" aria-roledescription="عارض مقالات">
       <Link key={article.id} to={`/articles/${article.id}`} className="hero-article-slide">
-        <img src={article.cover_image_url} alt={article.title} />
+        <img src={article.cover_image_url} alt={article.title} loading="eager" fetchPriority="high" decoding="async" />
         <span className="hero-article-shade" aria-hidden="true" />
        
       </Link>
