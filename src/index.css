@@ -9736,7 +9736,7 @@ span {
 
 .calm-hero-phrase .mark {
   color: hsl(var(--foreground));
-  background: linear-gradient(transparent 60%, hsl(var(--primary)) 60%, hsl(var(--primary)) 75%, transparent 86%);
+  /* background: linear-gradient(transparent 60%, hsl(var(--primary)) 60%, hsl(var(--primary)) 75%, transparent 86%); */
   font-weight: 700;
 }
 
