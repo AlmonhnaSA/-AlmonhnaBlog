@@ -235,7 +235,14 @@ useEffect(() => {
                       className={`audio-waveform ${
                         playing ? "is-playing" : ""
                       }`}
-                      aria-hidden="true"
+                      role="slider"
+                      tabIndex={0}
+                      aria-label="موضع التشغيل"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(progress)}
+                      style={{ cursor: "pointer", touchAction: "none" }}
+                      {...seekBarHandlers(() => audioRef.current)}
                     >
                       {Array.from(
                         { length: 30 },

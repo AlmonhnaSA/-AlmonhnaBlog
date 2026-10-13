@@ -448,7 +448,19 @@ const AudioEpisodes = () => {
                             Progress
                         ================================= */}
 
-                        <div className="audio-episode-progress">
+                        <div
+                          className="audio-episode-progress"
+                          role="slider"
+                          tabIndex={0}
+                          aria-label="موضع التشغيل"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={isPlaying ? Math.round(progress) : 0}
+                          style={{ cursor: "pointer", touchAction: "none" }}
+                          {...seekBarHandlers(() =>
+                            audioEpisodeIdRef.current === episode.id ? audioRef.current : null
+                          )}
+                        >
 
                           <div className="audio-episode-progress-track">
 
