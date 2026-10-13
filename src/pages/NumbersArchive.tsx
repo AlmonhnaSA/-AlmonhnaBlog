@@ -219,7 +219,7 @@ const NumbersArchive = () => {
                         href={item.link_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="number-story-link editorial-link"
+                        className="number-story-link "
                       >
                         اقرأ ما وراء الرقم
                         <ArrowLeft
