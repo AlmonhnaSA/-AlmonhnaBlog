@@ -1,0 +1,13 @@
+name = "almonhna-audio"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+# Served on the free *.workers.dev address first; no DNS change is needed.
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://www.almonhna.sa,https://almonhna.sa"
+KEY_PREFIX = "episodes/"
+
+[[r2_buckets]]
+binding = "AUDIO_BUCKET"
+bucket_name = "almonhna-audio"

@@ -138,7 +138,7 @@ const AudioEpisodes = () => {
     // إنشاء Audio جديد
     // =========================================
 
-    const audio = new Audio(episode.audio_url);
+    const audio = new Audio(resolveAudioUrl(episode.audio_url));
 
     // تطبيق سرعة التشغيل الحالية
     audio.playbackRate = playbackRate;
