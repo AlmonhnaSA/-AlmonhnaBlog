@@ -11727,7 +11727,8 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
 .mosaic-layout { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: clamp(17rem, 30vw, 22rem); overflow: hidden !important; }
-.mosaic-cell { min-height: 0 !important; }
+.mosaic-cell { min-height: 0 !important; padding: .4rem !important; justify-content: center !important; }
+.mosaic-cell strong { line-height: 1.25 !important; }
 @media (max-width: 1023px) {
   .mosaic-layout { height: clamp(16rem, 62vw, 20rem); gap: .3rem !important; padding: .3rem !important; }
   .mosaic-cell { padding: .35rem !important; }
