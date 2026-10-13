@@ -24,7 +24,7 @@ interface NewsItem {
   };
 }
 
-const featuredServices = [
+const featuredServices: { title: string; description: string; features?: string[]; [key: string]: unknown }[] = [
   {
     title: "صياغة المحتوى الاقتصادي",
     description:
