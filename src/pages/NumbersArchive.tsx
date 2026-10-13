@@ -105,12 +105,14 @@ const NumbersArchive = () => {
             <em>تحكي حكايات كبيرة</em>
           </h1>
 
-          <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الأرقام…" className="mx-auto my-5" />
           <p>
             مجموعة من الأرقام التي مرّت في
             المُنحنى، وكل رقم منها يخفي خلفه
             قصة تستحق أن تُروى
           </p>
+
+                    <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الأرقام…" className="mx-auto my-5" />
+
 
         </section>
 
