@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ const STATUSES: { value: string; label: string }[] = [
 ];
 
 const ManageAudienceQuestions = () => {
+  const search = useDashboardSearch();
   const [questions, setQuestions] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
@@ -48,7 +50,7 @@ const ManageAudienceQuestions = () => {
     load();
   };
 
-  const visible = filter === "all" ? questions : questions.filter((q) => q.status === filter);
+  const visible = search(questions).filter((q) => filter === "all" || q.status === filter);
 
   return (
     <div className="space-y-4" dir="rtl">

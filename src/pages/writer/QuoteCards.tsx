@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface SavedCard extends QuoteCardData {
 }
 
 const WriterQuoteCards = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
   const [profileId, setProfileId] = useState<string>("");
@@ -284,7 +286,7 @@ const WriterQuoteCards = () => {
           {cards.length === 0 ? (
             <p className="text-muted-foreground text-sm">لا توجد بطاقات محفوظة بعد.</p>
           ) : (
-            <QuoteCardGallery cards={cards as any} onDelete={handleDelete} />
+            <QuoteCardGallery cards={search(cards) as any} onDelete={handleDelete} />
           )}
         </CardContent>
       </Card>

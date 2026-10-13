@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/table";
 
 const ManageWriters = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -178,7 +180,7 @@ const ManageWriters = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {writers?.map((writer) => (
+            {search(writers).map((writer) => (
               <TableRow key={writer.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

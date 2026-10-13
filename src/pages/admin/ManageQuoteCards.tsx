@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ interface AdminQuoteCard extends QuoteCardData {
 }
 
 const ManageQuoteCards = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const [cards, setCards] = useState<AdminQuoteCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ const ManageQuoteCards = () => {
           ) : cards.length === 0 ? (
             <p className="text-muted-foreground text-sm">لا توجد بطاقات بعد.</p>
           ) : (
-            <QuoteCardGallery cards={cards as any} onDelete={handleDelete} showWriter />
+            <QuoteCardGallery cards={search(cards) as any} onDelete={handleDelete} showWriter />
           )}
         </CardContent>
       </Card>

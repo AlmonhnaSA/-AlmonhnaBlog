@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -14,6 +15,7 @@ const STATUSES = [
 ];
 
 export default function ManageServiceRequests() {
+  const search = useDashboardSearch();
   const [requests, setRequests] = useState<Tables<"service_requests">[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -39,7 +41,7 @@ export default function ManageServiceRequests() {
     else setRequests((rows) => rows.map((row) => row.id === id ? { ...row, status: data.status } : row));
     setUpdating(null);
   };
-  const visible = filter === "all" ? requests : requests.filter((row) => row.status === filter);
+  const visible = search(filter === "all" ? requests : requests.filter((row) => row.status === filter));
   return <div className="space-y-4" dir="rtl">
     <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-4">
       <h1 className="text-2xl font-bold">طلبات الخدمات</h1>
