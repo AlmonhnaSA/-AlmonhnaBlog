@@ -129,3 +129,45 @@ describe("audio worker final review", () => {
     expect([...store.values()][0].headers.get("Cache-Control")).toBe("public, max-age=604800");
   });
 });
+
+describe("If-Range on an edge cache hit", () => {
+  // Fake cache that, like Cloudflare, answers Range from a stored full copy.
+  const stored = { etag: '"e1"', lm: "Wed, 01 Jan 2025 00:00:00 GMT" };
+  const cache = {
+    async match(r: Request) {
+      const h = new Headers({ ETag: stored.etag, "Last-Modified": stored.lm, "Content-Type": "audio/mpeg" });
+      const range = r.headers.get("Range");
+      if (range) {
+        h.set("Content-Range", "bytes 0-9/1000");
+        return new Response(data.slice(0, 10), { status: 206, headers: h });
+      }
+      return new Response(data, { status: 200, headers: h });
+    },
+    async put() {},
+  };
+  const go = (h: Record<string, string>) =>
+    handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=0-9", ...h }), env, undefined, cache);
+
+  test("different ETag returns the full 200 copy, not 206", async () => {
+    const r = await go({ "If-Range": '"old"' });
+    expect(r.status).toBe(200);
+    expect(r.headers.get("X-Audio-Cache")).toBe("HIT");
+    expect((await r.arrayBuffer()).byteLength).toBe(1000);
+  });
+  test("matching ETag returns 206", async () => {
+    expect((await go({ "If-Range": '"e1"' })).status).toBe(206);
+  });
+  test("weak ETag never allows a 206", async () => {
+    expect((await go({ "If-Range": 'W/"e1"' })).status).toBe(200);
+  });
+  test("matching Last-Modified date returns 206, different date returns 200", async () => {
+    expect((await go({ "If-Range": stored.lm })).status).toBe(206);
+    expect((await go({ "If-Range": "Thu, 02 Jan 2025 00:00:00 GMT" })).status).toBe(200);
+  });
+  test("query strings do not create separate cache entries", async () => {
+    const keys: string[] = [];
+    const c = { async match(r: Request) { keys.push(r.url); return undefined; }, async put() {} };
+    await handleRequest(req("/episodes/7ce8d098/a.mp3?v=2", { Range: "bytes=0-9" }), env, undefined, c);
+    expect(keys[0].includes("?")).toBe(false);
+  });
+});

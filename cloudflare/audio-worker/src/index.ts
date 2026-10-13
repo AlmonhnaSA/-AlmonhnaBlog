@@ -226,19 +226,35 @@ export async function handleRequest(
   // Cache key: path only (no query, no Range) so all ranges share one cached object.
   // Uses the resolved R2 key when known, so /episodes/audio/x and /episodes/x share one entry.
   const canonical = resolvedKeys.get(requested) || requested;
-  // Optional ?v= is kept in the key so a replaced file can be refreshed with a new link.
-  const v = url.searchParams.get("v");
-  const cacheKey = new Request(`${url.origin}/${canonical}${v ? `?v=${encodeURIComponent(v)}` : ""}`, { method: "GET" });
+  // Query strings are ignored. Replacing a file under the same path is NOT supported:
+  // every update must be uploaded under a new, unique name (the site's uploader already does this).
+  // The 7-day edge expiry is only a safety net, not an update mechanism.
+  const cacheKey = new Request(`${url.origin}/${canonical}`, { method: "GET" });
 
   // 1) Edge cache: match() answers Range/If-None-Match from a cached full object.
   if (cache) {
     try {
       const matchHeaders = new Headers();
-      for (const k of ["Range", "If-None-Match", "If-Modified-Since", "If-Range"]) {
+      // If-Range is evaluated here, not by the cache: a cached copy whose ETag/Last-Modified
+      // differs from the client's validator must return the full file (200), never a 206.
+      for (const k of ["Range", "If-None-Match", "If-Modified-Since"]) {
         const v = request.headers.get(k);
         if (v) matchHeaders.set(k, v);
       }
-      const hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+      let hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+      const ifRangeHeader = request.headers.get("If-Range");
+      if (hit && hit.status === 206 && ifRangeHeader) {
+        const cachedMeta: R2ObjectLike = {
+          size: 0,
+          httpEtag: hit.headers.get("ETag") || undefined,
+          uploaded: hit.headers.get("Last-Modified") ? new Date(hit.headers.get("Last-Modified") as string) : undefined,
+        };
+        if (!ifRangeMatches(ifRangeHeader, cachedMeta)) {
+          hit.body?.cancel();
+          matchHeaders.delete("Range");
+          hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+        }
+      }
       if (hit) return withCors(hit, cors, "HIT", method === "HEAD");
     } catch (e) {
       console.error("edge cache match failed", String(e));
