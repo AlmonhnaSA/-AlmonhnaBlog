@@ -42,7 +42,7 @@ const featuredServices: { title: string; description: string; features?: string[
   {
     title: "إعداد المحتوى الاقتصادي",
     description:
-      " محتوى بصسغة فريدة تستثمره في تثقسف جمهورك",
+      " محتوى بصيغة فريدة تستثمره في تثقيف جمهورك",
     // features: [
     //   "بحث وتحليل المعلومات",
     //   "بناء الفكرة والسردية",
