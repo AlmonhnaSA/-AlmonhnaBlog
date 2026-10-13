@@ -206,7 +206,9 @@ export async function handleRequest(
   if (range.kind === "invalid") return plain(416, "Range Not Satisfiable", cors);
 
   // Cache key: path only (no query, no Range) so all ranges share one cached object.
-  const cacheKey = new Request(`${url.origin}${url.pathname}`, { method: "GET" });
+  // Uses the resolved R2 key when known, so /episodes/audio/x and /episodes/x share one entry.
+  const canonical = resolvedKeys.get(requested) || requested;
+  const cacheKey = new Request(`${url.origin}/${canonical}`, { method: "GET" });
 
   // 1) Edge cache: match() answers Range/If-None-Match from a cached full object.
   if (cache) {

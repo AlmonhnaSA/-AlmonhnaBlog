@@ -261,6 +261,7 @@ useEffect(() => {
                   <audio
                     ref={audioRef}
                     src={resolveAudioUrl(current.audio_url)}
+                    preload="none"
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onTimeUpdate={(e) => {
