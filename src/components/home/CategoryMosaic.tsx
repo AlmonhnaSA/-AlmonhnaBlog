@@ -43,7 +43,7 @@ export const CategoryMosaic = () => {
   useEffect(() => { const mq = window.matchMedia("(min-width: 768px)"); const on = () => setWide(mq.matches); on(); mq.addEventListener("change", on); return () => mq.removeEventListener("change", on); }, []);
   const { data: cells } = useQuery({ queryKey: ["category-mosaic"], queryFn: async (): Promise<Cell[]> => { const [{ data: categories, error: categoryError }, { data: links, error: linkError }] = await Promise.all([supabase.from("categories").select("id, name, slug, display_order, color").order("display_order"), supabase.from("article_categories").select("category_id, articles:article_id (status)")]); if (categoryError) throw categoryError; if (linkError) throw linkError; const counts = new Map<string, number>(); (links || []).forEach((row: any) => { if (row.articles?.status === "approved") counts.set(row.category_id, (counts.get(row.category_id) || 0) + 1); }); return (categories || []).map((item: any) => ({ ...item, color: item.color || "#3b6561", count: counts.get(item.id) || 0 })).filter((item) => item.count > 0).sort((a, b) => b.count - a.count); } });
   if (!cells?.length) return null;
-  const layout = mosaicLayout(cells.length, wide ? 2 : 1);
+  const layout = mosaicLayout(cells.length, wide && cells.length > 12 ? 2 : 1);
   
   return (
     <section className="mosaic-section">
@@ -60,7 +60,7 @@ export const CategoryMosaic = () => {
     </div>
   </Reveal>
      
-      <div style={{ ["--mosaic-rows" as string]: layout.rows, ["--mosaic-cols" as string]: layout.columns, ["--mosaic-grow" as string]: 1 + (layout.blockRows - 1) * 0.45 }} className={`mosaic-layout p-5 ${active ? "has-active" : ""}`} onMouseLeave={() => setActive(null)}>
+      <div style={{ ["--mosaic-rows" as string]: layout.rows, ["--mosaic-cols" as string]: layout.columns, ["--mosaic-grow" as string]: 1 + Math.max(0, layout.blockRows - 2) * 0.45 }} className={`mosaic-layout p-5 ${active ? "has-active" : ""}`} onMouseLeave={() => setActive(null)}>
           {cells.map((cell, i) => <Reveal key={cell.id} delay={i * 55} variant="scale" style={layout.place(i)} className={`${shape(i)} mosaic-reveal`}><Link to={`/articles?category=${encodeURIComponent(cell.slug)}`} onMouseEnter={() => setActive(cell.id)} className={`mosaic-cell ${active === cell.id ? "is-active" : ""}`} style={{ backgroundColor: cell.color, color: readableColor(cell.color) }}><strong>{cell.name}</strong><span className="mosaic-count">{cell.count} مقال</span></Link></Reveal>)}
         </div>
       </div>
