@@ -50,6 +50,10 @@ export interface Ctx {
 }
 
 const DEFAULT_ORIGINS = "https://www.almonhna.sa,https://almonhna.sa";
+/** Browser keeps files a year: safe only because every upload gets a new, unique path. */
+const BROWSER_CACHE = "public, max-age=31536000, immutable";
+/** Edge copy expires after 7 days, so an overwritten key self-heals at the edge within a week. */
+const EDGE_CACHE = "public, max-age=604800";
 const MAX_EDGE_CACHE_BYTES = 200 * 1024 * 1024; // well under the 512 MB cache object limit
 const MIME: Record<string, string> = {
   mp3: "audio/mpeg",
@@ -68,22 +72,26 @@ const filling = new Set<string>();
 
 export type ParsedRange =
   | { kind: "none" }
-  | { kind: "invalid" }
+  | { kind: "unsatisfiable" }
   | { kind: "ok"; option: R2RangeOption };
 
-/** Parses a single "bytes=" range without needing the object size. */
+/**
+ * Parses a single "bytes=" range without needing the object size.
+ * Malformed or multi-range headers are ignored (full 200), as RFC 9110 allows;
+ * only "bytes=-0" is unsatisfiable here — "start beyond end" is detected against the size.
+ */
 export function parseRange(header: string | null): ParsedRange {
   if (!header) return { kind: "none" };
   const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
-  if (!m || (m[1] === "" && m[2] === "")) return { kind: "invalid" };
+  if (!m || (m[1] === "" && m[2] === "")) return { kind: "none" };
   if (m[1] === "") {
     const suffix = Number(m[2]);
-    return suffix > 0 ? { kind: "ok", option: { suffix } } : { kind: "invalid" };
+    return suffix > 0 ? { kind: "ok", option: { suffix } } : { kind: "unsatisfiable" };
   }
   const start = Number(m[1]);
   if (m[2] === "") return { kind: "ok", option: { offset: start } };
   const end = Number(m[2]);
-  if (end < start) return { kind: "invalid" };
+  if (end < start) return { kind: "none" };
   return { kind: "ok", option: { offset: start, length: end - start + 1 } };
 }
 
@@ -134,7 +142,7 @@ function objectHeaders(obj: R2ObjectLike, key: string): Headers {
   const ext = key.split(".").pop()?.toLowerCase() || "";
   h.set("Content-Type", obj.httpMetadata?.contentType || MIME[ext] || "application/octet-stream");
   h.set("Accept-Ranges", "bytes");
-  h.set("Cache-Control", "public, max-age=31536000, immutable");
+  h.set("Cache-Control", BROWSER_CACHE);
   const etag = obj.httpEtag || (obj.etag ? `"${obj.etag}"` : "");
   if (etag) h.set("ETag", etag);
   if (obj.uploaded) h.set("Last-Modified", obj.uploaded.toUTCString());
@@ -144,6 +152,7 @@ function objectHeaders(obj: R2ObjectLike, key: string): Headers {
 function withCors(res: Response, cors: Headers, cacheState: string, headOnly = false): Response {
   const h = new Headers(res.headers);
   cors.forEach((v, k) => h.set(k, v));
+  if (res.status === 200 || res.status === 206 || res.status === 304) h.set("Cache-Control", BROWSER_CACHE);
   h.set("X-Audio-Cache", cacheState);
   return new Response(headOnly ? null : res.body, { status: res.status, headers: h });
 }
@@ -161,27 +170,36 @@ function defaultCache(): CacheLike | null {
   return c || null;
 }
 
-/** Streams the full object into the edge cache once per isolate. */
-async function fillCache(cache: CacheLike, cacheKey: Request, env: Env, key: string, body?: ReadableStream | null, meta?: R2ObjectLike) {
-  if (filling.has(cacheKey.url)) {
-    body?.cancel();
-    return;
-  }
+/**
+ * Streams the full object into the edge cache with one R2 get.
+ * Duplicate fills are reduced in two ways: an in-isolate Set (same isolate only) and a
+ * cache.match() check first (sees fills already finished by other isolates in the same
+ * data centre). Neither coordinates isolates globally, so a few concurrent first requests
+ * can still each fill once; each fill costs one extra R2 read, never more.
+ */
+async function fillCache(cache: CacheLike, cacheKey: Request, env: Env, key: string, size: number) {
+  if (size > MAX_EDGE_CACHE_BYTES || filling.has(cacheKey.url)) return;
   filling.add(cacheKey.url);
   try {
-    let obj = meta && body ? { ...meta, body } : await env.AUDIO_BUCKET.get(key);
-    if (!obj?.body || obj.size > MAX_EDGE_CACHE_BYTES) {
-      obj?.body?.cancel();
-      return;
-    }
+    if (await cache.match(cacheKey)) return;
+    const obj = await env.AUDIO_BUCKET.get(key);
+    if (!obj?.body) return;
     const h = objectHeaders(obj, key);
     h.set("Content-Length", String(obj.size));
+    h.set("Cache-Control", EDGE_CACHE);
     await cache.put(cacheKey, new Response(obj.body, { status: 200, headers: h }));
   } catch (e) {
     console.error("edge cache fill failed", key, String(e));
   } finally {
     filling.delete(cacheKey.url);
   }
+}
+
+/** If-Range matches only an identical strong ETag or exact Last-Modified date. */
+function ifRangeMatches(ifRange: string, meta: R2ObjectLike): boolean {
+  const etag = meta.httpEtag || (meta.etag ? `"${meta.etag}"` : "");
+  if (ifRange.startsWith('"') || ifRange.startsWith("W/")) return !!etag && ifRange === etag;
+  return !!meta.uploaded && new Date(ifRange).getTime() === Math.floor(meta.uploaded.getTime() / 1000) * 1000;
 }
 
 export async function handleRequest(
@@ -202,13 +220,15 @@ export async function handleRequest(
   const requested = keyFromPath(url.pathname, prefix);
   if (!requested) return plain(404, "Not Found", cors);
 
-  const range = parseRange(request.headers.get("Range"));
-  if (range.kind === "invalid") return plain(416, "Range Not Satisfiable", cors);
+  let range = parseRange(request.headers.get("Range"));
+  if (range.kind === "unsatisfiable") return plain(416, "Range Not Satisfiable", cors);
 
   // Cache key: path only (no query, no Range) so all ranges share one cached object.
   // Uses the resolved R2 key when known, so /episodes/audio/x and /episodes/x share one entry.
   const canonical = resolvedKeys.get(requested) || requested;
-  const cacheKey = new Request(`${url.origin}/${canonical}`, { method: "GET" });
+  // Optional ?v= is kept in the key so a replaced file can be refreshed with a new link.
+  const v = url.searchParams.get("v");
+  const cacheKey = new Request(`${url.origin}/${canonical}${v ? `?v=${encodeURIComponent(v)}` : ""}`, { method: "GET" });
 
   // 1) Edge cache: match() answers Range/If-None-Match from a cached full object.
   if (cache) {
@@ -239,7 +259,14 @@ export async function handleRequest(
   }
 
   // 3) GET on a miss: stream only what was asked for.
+  const ifRange = request.headers.get("If-Range");
   for (const k of candidateKeys(requested, prefix)) {
+    if (ifRange && range.kind === "ok") {
+      // Rare: client resumes with a validator. Check it before choosing 206 vs 200.
+      const meta = await env.AUDIO_BUCKET.head(k);
+      if (!meta) continue;
+      if (!ifRangeMatches(ifRange, meta)) range = { kind: "none" };
+    }
     let obj: R2ObjectLike | null;
     try {
       obj = await env.AUDIO_BUCKET.get(k, range.kind === "ok" ? { range: range.option } : undefined);
@@ -255,7 +282,7 @@ export async function handleRequest(
 
     const h = objectHeaders(obj, k);
     let status = 200;
-    let body = obj.body ?? null;
+    const body = obj.body ?? null;
 
     if (range.kind === "ok") {
       const size = obj.size;
@@ -280,15 +307,12 @@ export async function handleRequest(
       status = 206;
       h.set("Content-Range", `bytes ${start}-${start + length - 1}/${size}`);
       h.set("Content-Length", String(length));
-      if (cache && ctx) ctx.waitUntil(fillCache(cache, cacheKey, env, k));
     } else {
       h.set("Content-Length", String(obj.size));
-      if (cache && ctx && body && obj.size <= MAX_EDGE_CACHE_BYTES && !filling.has(cacheKey.url)) {
-        const [client, toCache] = body.tee();
-        body = client;
-        ctx.waitUntil(fillCache(cache, cacheKey, env, k, toCache, obj));
-      }
     }
+    // The client gets its bytes straight from R2; the cache fill is a separate background read
+    // (no tee, so a slow listener never makes the Worker buffer the whole file).
+    if (cache && ctx) ctx.waitUntil(fillCache(cache, cacheKey, env, k, obj.size));
 
     return withCors(new Response(body, { status, headers: h }), cors, "MISS");
   }

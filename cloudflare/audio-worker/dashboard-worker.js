@@ -1,7 +1,9 @@
-// Almonhna audio Worker v2 — paste into the Cloudflare dashboard editor.
+// Almonhna audio Worker — FINAL. Paste into the Cloudflare dashboard editor.
 // Needs an R2 bucket binding named AUDIO_BUCKET -> almonhna-audio.
 // src/index.ts
 var DEFAULT_ORIGINS = "https://www.almonhna.sa,https://almonhna.sa";
+var BROWSER_CACHE = "public, max-age=31536000, immutable";
+var EDGE_CACHE = "public, max-age=604800";
 var MAX_EDGE_CACHE_BYTES = 200 * 1024 * 1024;
 var MIME = {
   mp3: "audio/mpeg",
@@ -20,17 +22,17 @@ function parseRange(header) {
     return { kind: "none" };
   const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
   if (!m || m[1] === "" && m[2] === "")
-    return { kind: "invalid" };
+    return { kind: "none" };
   if (m[1] === "") {
     const suffix = Number(m[2]);
-    return suffix > 0 ? { kind: "ok", option: { suffix } } : { kind: "invalid" };
+    return suffix > 0 ? { kind: "ok", option: { suffix } } : { kind: "unsatisfiable" };
   }
   const start = Number(m[1]);
   if (m[2] === "")
     return { kind: "ok", option: { offset: start } };
   const end = Number(m[2]);
   if (end < start)
-    return { kind: "invalid" };
+    return { kind: "none" };
   return { kind: "ok", option: { offset: start, length: end - start + 1 } };
 }
 function keyFromPath(pathname, prefix = "episodes/") {
@@ -75,7 +77,7 @@ function objectHeaders(obj, key) {
   const ext = key.split(".").pop()?.toLowerCase() || "";
   h.set("Content-Type", obj.httpMetadata?.contentType || MIME[ext] || "application/octet-stream");
   h.set("Accept-Ranges", "bytes");
-  h.set("Cache-Control", "public, max-age=31536000, immutable");
+  h.set("Cache-Control", BROWSER_CACHE);
   const etag = obj.httpEtag || (obj.etag ? `"${obj.etag}"` : "");
   if (etag)
     h.set("ETag", etag);
@@ -86,6 +88,8 @@ function objectHeaders(obj, key) {
 function withCors(res, cors, cacheState, headOnly = false) {
   const h = new Headers(res.headers);
   cors.forEach((v, k) => h.set(k, v));
+  if (res.status === 200 || res.status === 206 || res.status === 304)
+    h.set("Cache-Control", BROWSER_CACHE);
   h.set("X-Audio-Cache", cacheState);
   return new Response(headOnly ? null : res.body, { status: res.status, headers: h });
 }
@@ -101,26 +105,31 @@ function defaultCache() {
   const c = globalThis.caches?.default;
   return c || null;
 }
-async function fillCache(cache, cacheKey, env, key, body, meta) {
-  if (filling.has(cacheKey.url)) {
-    body?.cancel();
+async function fillCache(cache, cacheKey, env, key, size) {
+  if (size > MAX_EDGE_CACHE_BYTES || filling.has(cacheKey.url))
     return;
-  }
   filling.add(cacheKey.url);
   try {
-    let obj = meta && body ? { ...meta, body } : await env.AUDIO_BUCKET.get(key);
-    if (!obj?.body || obj.size > MAX_EDGE_CACHE_BYTES) {
-      obj?.body?.cancel();
+    if (await cache.match(cacheKey))
       return;
-    }
+    const obj = await env.AUDIO_BUCKET.get(key);
+    if (!obj?.body)
+      return;
     const h = objectHeaders(obj, key);
     h.set("Content-Length", String(obj.size));
+    h.set("Cache-Control", EDGE_CACHE);
     await cache.put(cacheKey, new Response(obj.body, { status: 200, headers: h }));
   } catch (e) {
     console.error("edge cache fill failed", key, String(e));
   } finally {
     filling.delete(cacheKey.url);
   }
+}
+function ifRangeMatches(ifRange, meta) {
+  const etag = meta.httpEtag || (meta.etag ? `"${meta.etag}"` : "");
+  if (ifRange.startsWith('"') || ifRange.startsWith("W/"))
+    return !!etag && ifRange === etag;
+  return !!meta.uploaded && new Date(ifRange).getTime() === Math.floor(meta.uploaded.getTime() / 1000) * 1000;
 }
 async function handleRequest(request, env, ctx, cache = defaultCache()) {
   const cors = corsHeaders(request, env);
@@ -136,18 +145,19 @@ async function handleRequest(request, env, ctx, cache = defaultCache()) {
   const requested = keyFromPath(url.pathname, prefix);
   if (!requested)
     return plain(404, "Not Found", cors);
-  const range = parseRange(request.headers.get("Range"));
-  if (range.kind === "invalid")
+  let range = parseRange(request.headers.get("Range"));
+  if (range.kind === "unsatisfiable")
     return plain(416, "Range Not Satisfiable", cors);
   const canonical = resolvedKeys.get(requested) || requested;
-  const cacheKey = new Request(`${url.origin}/${canonical}`, { method: "GET" });
+  const v = url.searchParams.get("v");
+  const cacheKey = new Request(`${url.origin}/${canonical}${v ? `?v=${encodeURIComponent(v)}` : ""}`, { method: "GET" });
   if (cache) {
     try {
       const matchHeaders = new Headers;
       for (const k of ["Range", "If-None-Match", "If-Modified-Since", "If-Range"]) {
-        const v = request.headers.get(k);
-        if (v)
-          matchHeaders.set(k, v);
+        const v2 = request.headers.get(k);
+        if (v2)
+          matchHeaders.set(k, v2);
       }
       const hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
       if (hit)
@@ -168,7 +178,15 @@ async function handleRequest(request, env, ctx, cache = defaultCache()) {
     }
     return plain(404, "Not Found", cors);
   }
+  const ifRange = request.headers.get("If-Range");
   for (const k of candidateKeys(requested, prefix)) {
+    if (ifRange && range.kind === "ok") {
+      const meta = await env.AUDIO_BUCKET.head(k);
+      if (!meta)
+        continue;
+      if (!ifRangeMatches(ifRange, meta))
+        range = { kind: "none" };
+    }
     let obj;
     try {
       obj = await env.AUDIO_BUCKET.get(k, range.kind === "ok" ? { range: range.option } : undefined);
@@ -184,7 +202,7 @@ async function handleRequest(request, env, ctx, cache = defaultCache()) {
     resolvedKeys.set(requested, k);
     const h = objectHeaders(obj, k);
     let status = 200;
-    let body = obj.body ?? null;
+    const body = obj.body ?? null;
     if (range.kind === "ok") {
       const size = obj.size;
       let start;
@@ -208,16 +226,11 @@ async function handleRequest(request, env, ctx, cache = defaultCache()) {
       status = 206;
       h.set("Content-Range", `bytes ${start}-${start + length - 1}/${size}`);
       h.set("Content-Length", String(length));
-      if (cache && ctx)
-        ctx.waitUntil(fillCache(cache, cacheKey, env, k));
     } else {
       h.set("Content-Length", String(obj.size));
-      if (cache && ctx && body && obj.size <= MAX_EDGE_CACHE_BYTES && !filling.has(cacheKey.url)) {
-        const [client, toCache] = body.tee();
-        body = client;
-        ctx.waitUntil(fillCache(cache, cacheKey, env, k, toCache, obj));
-      }
     }
+    if (cache && ctx)
+      ctx.waitUntil(fillCache(cache, cacheKey, env, k, obj.size));
     return withCors(new Response(body, { status, headers: h }), cors, "MISS");
   }
   return plain(404, "Not Found", cors);
