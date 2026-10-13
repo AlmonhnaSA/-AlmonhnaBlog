@@ -220,13 +220,14 @@ const AudioEpisodes = () => {
             <br />
             <em>وحكاياتٌ تبقى</em>
           </h1>
-          <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الحلقات…" className="mx-auto my-5" />
 
           <p>
             حلقات المُنحنى الصوتية؛
             أفكار وحكايات تأخذك إلى زاوية
             أخرى من الحكاية
           </p>
+
+                    <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الحلقات…" className=" my-5" />
 
         </section>
 
