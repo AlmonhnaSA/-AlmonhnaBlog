@@ -174,7 +174,7 @@ const News = () => {
                     </p>
 
                     <ul className="service-features">
-                      {service.features.map((feature) => (
+                      {(service.features ?? []).map((feature) => (
                         <li key={feature}>{feature}</li>
                       ))}
                     </ul>
