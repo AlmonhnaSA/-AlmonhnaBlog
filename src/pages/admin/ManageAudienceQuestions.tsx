@@ -50,7 +50,7 @@ const ManageAudienceQuestions = () => {
     load();
   };
 
-  const visible = search(filter === "all" ? questions : questions).filter((q) => filter === "all" || q.status === filter); const _unused = ((q) => q.status === filter);
+  const visible = search(questions).filter((q) => filter === "all" || q.status === filter);
 
   return (
     <div className="space-y-4" dir="rtl">
