@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
-import { ArticleCard } from "@/components/ArticleCard";
+import { LatestArticleCard } from "@/components/LatestArticleCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { parseSequencePoints } from "@/lib/articleExtras";
 import { cn } from "@/lib/utils";
 import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 import { Button } from "@/components/ui/button";
@@ -264,7 +263,7 @@ const Articles = () => {
 
         {/* Loading initial articles */}
         {loading ? (
-          <div className="archive-article-grid">
+          <div className="latest-card-grid">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -285,27 +284,24 @@ const Articles = () => {
         ) : (
           <>
             {/* Articles */}
-            <div className="archive-article-grid">
+            <div className="latest-card-grid">
               {visible.map((article) => (
-                <ArticleCard
+                <LatestArticleCard
                   key={article.id}
-                   variant="archive"
-                  id={article.id}
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  coverImage={article.cover_image_url}
-                  author={{
-                    name: article.profiles.name,
-                    photo: article.profiles.photo_url || undefined,
+                  article={{
+                    id: article.id,
+                    title: article.title,
+                    excerpt: article.excerpt,
+                    content: (article as any).content,
+                    cover_image_url: article.cover_image_url,
+                    created_at: article.created_at,
+                    approved_at: article.approved_at ?? null,
+                    sequence_points: article.sequence_points,
+                    profiles: article.profiles,
                   }}
-                   date={article.approved_at || article.created_at}
-                  type="article"
                   categories={(articleCategories[article.id] || [])
                     .map((slug) => slugToName[slug])
                     .filter(Boolean)}
-                  sequencePoints={parseSequencePoints(
-                    article.sequence_points
-                  )}
                 />
               ))}
             </div>
