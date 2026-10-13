@@ -111,7 +111,7 @@ const NumbersArchive = () => {
             قصة تستحق أن تُروى
           </p>
 
-                    <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الأرقام…" className="mx-auto my-5" />
+                    <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الأرقام…" className=" my-5" />
 
 
         </section>
