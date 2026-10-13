@@ -1,62 +1,63 @@
+import { lazy, Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Register from "./pages/Register";
-import ResetPassword from "./pages/ResetPassword";
-import Articles from "./pages/Articles";
-import News from "./pages/News";
-import Writers from "./pages/Writers";
-import AudioEpisodes from "./pages/AudioEpisodes";
-import NumbersArchive from "./pages/NumbersArchive";
-import ArticleDetail from "./pages/ArticleDetail";
-import NewsDetail from "./pages/NewsDetail";
-import WriterDetail from "./pages/WriterDetail";
-import ProductDetail from "./pages/ProductDetail";
-import Products from "./pages/Products";
-import AdminDashboard from "./pages/admin/Dashboard";
-import ManageArticles from "./pages/admin/ManageArticles";
-import ManageNews from "./pages/admin/ManageNews";
-import ManageWriters from "./pages/admin/ManageWriters";
-import ManageProducts from "./pages/admin/ManageProducts";
-import ManageUsers from "./pages/admin/ManageUsers";
-import AdminSettings from "./pages/admin/Settings";
-import Setup from "./pages/Setup";
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Register = lazy(() => import("./pages/Register"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Articles = lazy(() => import("./pages/Articles"));
+const News = lazy(() => import("./pages/News"));
+const Writers = lazy(() => import("./pages/Writers"));
+const AudioEpisodes = lazy(() => import("./pages/AudioEpisodes"));
+const NumbersArchive = lazy(() => import("./pages/NumbersArchive"));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
+const NewsDetail = lazy(() => import("./pages/NewsDetail"));
+const WriterDetail = lazy(() => import("./pages/WriterDetail"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Products = lazy(() => import("./pages/Products"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const ManageArticles = lazy(() => import("./pages/admin/ManageArticles"));
+const ManageNews = lazy(() => import("./pages/admin/ManageNews"));
+const ManageWriters = lazy(() => import("./pages/admin/ManageWriters"));
+const ManageProducts = lazy(() => import("./pages/admin/ManageProducts"));
+const ManageUsers = lazy(() => import("./pages/admin/ManageUsers"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const Setup = lazy(() => import("./pages/Setup"));
 import AdminLayout from "./components/AdminLayout";
 import WriterLayout from "./components/WriterLayout";
-import WriterDashboard from "./pages/writer/Dashboard";
-import WriterManageArticles from "./pages/writer/ManageArticles";
-import WriterManageNews from "./pages/writer/ManageNews";
-import WriterProfile from "./pages/writer/Profile";
-import WriterAddEditArticle from "./pages/writer/AddEditArticle";
-import WriterAddEditNews from "./pages/writer/AddEditNews";
-import WriterPreviewArticle from "./pages/writer/PreviewArticle";
-import WriterPreviewNews from "./pages/writer/PreviewNews";
-import WriterSettings from "./pages/writer/Settings";
-import AdminAddEditProduct from "./pages/admin/AddEditProduct";
-import ManageStoreProducts from "./pages/admin/ManageStoreProducts";
-import AddEditStoreProduct from "./pages/admin/AddEditStoreProduct";
-import ManageProductRequests from "./pages/admin/ManageProductRequests";
-import Store from "./pages/Store";
-import StoreProductDetail from "./pages/StoreProductDetail";
-import AdminPreviewArticle from "./pages/admin/PreviewArticle";
-import AdminPreviewNews from "./pages/admin/PreviewNews";
-import AdminEditArticle from "./pages/admin/AddEditArticle";
-import AdminEditNews from "./pages/admin/AddEditNews";
-import ManageCategories from "./pages/admin/ManageCategories";
-import ManageDailyStories from "./pages/admin/ManageDailyStories";
-import ManageAudienceQuestions from "./pages/admin/ManageAudienceQuestions";
-import ManageServiceRequests from "./pages/admin/ManageServiceRequests";
-import ManageTimelines from "./pages/admin/ManageTimelines";
-import ManageNumberStories from "./pages/admin/ManageNumberStories";
-import ManageAudioEpisodes from "./pages/admin/ManageAudioEpisodes";
-import ManageQuoteCards from "./pages/admin/ManageQuoteCards";
-import WriterQuoteCards from "./pages/writer/QuoteCards";
-import NotFound from "./pages/NotFound";
+const WriterDashboard = lazy(() => import("./pages/writer/Dashboard"));
+const WriterManageArticles = lazy(() => import("./pages/writer/ManageArticles"));
+const WriterManageNews = lazy(() => import("./pages/writer/ManageNews"));
+const WriterProfile = lazy(() => import("./pages/writer/Profile"));
+const WriterAddEditArticle = lazy(() => import("./pages/writer/AddEditArticle"));
+const WriterAddEditNews = lazy(() => import("./pages/writer/AddEditNews"));
+const WriterPreviewArticle = lazy(() => import("./pages/writer/PreviewArticle"));
+const WriterPreviewNews = lazy(() => import("./pages/writer/PreviewNews"));
+const WriterSettings = lazy(() => import("./pages/writer/Settings"));
+const AdminAddEditProduct = lazy(() => import("./pages/admin/AddEditProduct"));
+const ManageStoreProducts = lazy(() => import("./pages/admin/ManageStoreProducts"));
+const AddEditStoreProduct = lazy(() => import("./pages/admin/AddEditStoreProduct"));
+const ManageProductRequests = lazy(() => import("./pages/admin/ManageProductRequests"));
+const Store = lazy(() => import("./pages/Store"));
+const StoreProductDetail = lazy(() => import("./pages/StoreProductDetail"));
+const AdminPreviewArticle = lazy(() => import("./pages/admin/PreviewArticle"));
+const AdminPreviewNews = lazy(() => import("./pages/admin/PreviewNews"));
+const AdminEditArticle = lazy(() => import("./pages/admin/AddEditArticle"));
+const AdminEditNews = lazy(() => import("./pages/admin/AddEditNews"));
+const ManageCategories = lazy(() => import("./pages/admin/ManageCategories"));
+const ManageDailyStories = lazy(() => import("./pages/admin/ManageDailyStories"));
+const ManageAudienceQuestions = lazy(() => import("./pages/admin/ManageAudienceQuestions"));
+const ManageServiceRequests = lazy(() => import("./pages/admin/ManageServiceRequests"));
+const ManageTimelines = lazy(() => import("./pages/admin/ManageTimelines"));
+const ManageNumberStories = lazy(() => import("./pages/admin/ManageNumberStories"));
+const ManageAudioEpisodes = lazy(() => import("./pages/admin/ManageAudioEpisodes"));
+const ManageQuoteCards = lazy(() => import("./pages/admin/ManageQuoteCards"));
+const WriterQuoteCards = lazy(() => import("./pages/writer/QuoteCards"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 
 
@@ -69,6 +70,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background" role="status" aria-label="جاري التحميل"><span className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" /></div>}>
         <Routes>
           <Route path="/" element={<Index />} />
         <Route path="/setup" element={<Setup />} />
@@ -129,6 +131,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
     </ThemeProvider>
