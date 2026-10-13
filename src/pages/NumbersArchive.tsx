@@ -3,7 +3,7 @@ import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
-import { Hash } from "lucide-react";
+import { Hash, ArrowLeft } from "lucide-react";
 
 interface NumberItem {
   id: string;
@@ -11,6 +11,7 @@ interface NumberItem {
   title: string;
   description: string | null;
   source: string | null;
+  link_url: string | null;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -32,7 +33,7 @@ const NumbersArchive = () => {
       const { data, error } = await supabase
         .from("number_stories")
         .select(
-          "id, number_value, title, description, source"
+          "id, number_value, title, description, source, link_url"
         )
         .eq("is_active", true)
         .order("display_order");
@@ -204,6 +205,21 @@ const NumbersArchive = () => {
                       <p>
                         {item.description}
                       </p>
+                    )}
+
+                    {item.link_url && (
+                      <a
+                        href={item.link_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="number-story-link editorial-link"
+                      >
+                        اقرأ ما وراء الرقم
+                        <ArrowLeft
+                          className="w-4 h-4"
+                          aria-hidden="true"
+                        />
+                      </a>
                     )}
 
                   </div>
