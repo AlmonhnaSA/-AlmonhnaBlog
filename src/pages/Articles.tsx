@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { parseSequencePoints } from "@/lib/articleExtras";
 import { cn } from "@/lib/utils";
+import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 import { Button } from "@/components/ui/button";
 
 interface Article {
@@ -51,6 +52,7 @@ const Articles = () => {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
 
       const [
         { data: initialArticles, error },
@@ -68,6 +70,7 @@ const Articles = () => {
             )
           `)
           .eq("status", "approved")
+          .or(hidden ?? "id.not.is.null")
           .order("approved_at", { ascending: false })
           .range(0, ARTICLES_PER_PAGE - 1),
 
@@ -120,6 +123,7 @@ const Articles = () => {
 
       const from = articles.length;
       const to = from + ARTICLES_PER_PAGE - 1;
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
 
       const { data, error } = await supabase
         .from("articles")
@@ -132,6 +136,7 @@ const Articles = () => {
           )
         `)
         .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
         .order("approved_at", { ascending: false })
         .range(from, to);
 
