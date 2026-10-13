@@ -11698,3 +11698,16 @@ html.dark body:not(:has(.editorial-home)),
     flex-basis: 100%;
   }
 }
+
+/* Responsive polish: never split short labels/chips mid-word */
+.latest-card-footer { flex-wrap: wrap; row-gap: .45rem; padding-block: .55rem; }
+.latest-card-categories { display: flex; flex-wrap: wrap; gap: .3rem; min-width: 0; max-width: 100%; }
+.latest-card-categories span { white-space: nowrap; flex: 0 0 auto; line-height: 1.5; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; }
+.latest-card-actions { flex: 0 0 auto; }
+.latest-card-author { flex: 0 1 auto; }
+h1, h2, h3, h4, p, li { overflow-wrap: break-word; word-break: normal; }
+button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
+@media (max-width: 640px) {
+  .latest-card-categories { order: 3; flex-basis: 100%; }
+  .latest-card-author strong { max-width: 9rem; }
+}
