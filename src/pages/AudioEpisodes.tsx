@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
@@ -28,6 +30,7 @@ interface Episode {
 const EPISODES_PER_PAGE = 10;
 
 const AudioEpisodes = () => {
+  const [query, setQuery] = useState("");
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -62,11 +65,12 @@ const AudioEpisodes = () => {
     }
   };
 
+  const filteredEpisodes = searchItems(episodes, query);
   const totalPages = Math.ceil(
-    episodes.length / EPISODES_PER_PAGE
+    filteredEpisodes.length / EPISODES_PER_PAGE
   );
 
-  const paginatedEpisodes = episodes.slice(
+  const paginatedEpisodes = filteredEpisodes.slice(
     (currentPage - 1) * EPISODES_PER_PAGE,
     currentPage * EPISODES_PER_PAGE
   );
@@ -216,6 +220,7 @@ const AudioEpisodes = () => {
             <br />
             <em>وحكاياتٌ تبقى</em>
           </h1>
+          <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الحلقات…" className="mx-auto my-5" />
 
           <p>
             حلقات المُنحنى الصوتية؛

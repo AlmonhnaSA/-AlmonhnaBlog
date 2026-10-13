@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
@@ -39,6 +41,7 @@ const Articles = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [query, setQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeSlug = searchParams.get("category") || "";
@@ -192,13 +195,37 @@ const Articles = () => {
     [categories]
   );
 
-  const visible = useMemo(() => {
-    if (!activeSlug) return articles;
+  const [searchResults, setSearchResults] = useState<Article[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) { setSearchResults(null); return; }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
+      const safe = q.replace(/[%,()]/g, " ");
+      const { data } = await supabase
+        .from("articles")
+        .select(`*, profiles ( id, name, photo_url )`)
+        .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
+        .or(`title.ilike.%${safe}%,excerpt.ilike.%${safe}%,content.ilike.%${safe}%`)
+        .order("approved_at", { ascending: false })
+        .limit(60);
+      setSearchResults((data as Article[]) || []);
+      setSearching(false);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [query]);
 
-    return articles.filter((article) =>
+  const visible = useMemo(() => {
+    const source = searchResults ?? articles;
+    if (!activeSlug) return source;
+
+    return source.filter((article) =>
       (articleCategories[article.id] || []).includes(activeSlug)
     );
-  }, [articles, articleCategories, activeSlug]);
+  }, [articles, searchResults, articleCategories, activeSlug]);
 
   const selectCategory = (slug: string) => {
     if (slug) {
@@ -222,6 +249,8 @@ const Articles = () => {
           <p className="text-muted-foreground">
 كل ما نشر على المُنحنى , مرتباً من الأحدث           </p>
         </div>
+
+        <SearchInput value={query} onChange={setQuery} placeholder="ابحث في المقالات…" className="mb-6" />
 
         {/* Categories */}
         {categories.length > 0 && (
@@ -262,7 +291,7 @@ const Articles = () => {
         )}
 
         {/* Loading initial articles */}
-        {loading ? (
+        {loading || searching ? (
           <div className="latest-card-grid">
             {[...Array(6)].map((_, i) => (
               <div
@@ -274,7 +303,9 @@ const Articles = () => {
         ) : visible.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">
-              {activeSlug
+              {query.trim()
+                ? `لا توجد نتائج لـ "${query.trim()}"`
+                : activeSlug
                 ? `لا توجد مقالات في "${
                     slugToName[activeSlug] || activeSlug
                   }" حالياً`
