@@ -24,7 +24,7 @@ interface NewsItem {
   };
 }
 
-const featuredServices = [
+const featuredServices: { title: string; description: string; features?: string[]; icon: typeof PenLine; featured?: boolean; accent: string }[] = [
   {
     title: "صياغة المحتوى الاقتصادي",
     description:
@@ -174,7 +174,7 @@ const News = () => {
                     </p>
 
                     <ul className="service-features">
-                      {service.features.map((feature) => (
+                      {(service.features ?? []).map((feature) => (
                         <li key={feature}>{feature}</li>
                       ))}
                     </ul>
