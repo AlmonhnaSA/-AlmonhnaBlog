@@ -21,5 +21,6 @@ Both layouts work: `episodes/<user>/<file>` and `episodes/audio/<user>/<file>`.
 - **No database change:** set `VITE_AUDIO_BASE_URL=https://almonhna-audio.<sub>.workers.dev`
   in the site's hosting environment and redeploy. Old links are rewritten at play time.
   Remove the variable to roll back.
+- **Updating a file:** never overwrite an existing path. Upload the new version under a new unique name and update the episode link; query strings such as ?v= are ignored and do not refresh caches.
 - **Permanent:** run `sql/01_switch_to_r2.sql` (after replacing `AUDIO_BASE`).
   Roll back with `sql/02_rollback.sql`.
