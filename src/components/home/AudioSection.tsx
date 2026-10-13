@@ -1,3 +1,4 @@
+import { seekBarHandlers } from "@/lib/audioSeek";
 import {
   useEffect,
   useMemo,

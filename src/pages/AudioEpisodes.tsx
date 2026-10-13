@@ -1,3 +1,4 @@
+import { seekBarHandlers } from "@/lib/audioSeek";
 import { resolveAudioUrl } from "@/lib/audioUrl";
 import { SearchInput } from "@/components/DashboardSearch";
 import { searchItems } from "@/lib/searchItems";
@@ -39,6 +40,7 @@ const AudioEpisodes = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioEpisodeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase
@@ -145,6 +147,7 @@ const AudioEpisodes = () => {
     audio.playbackRate = playbackRate;
 
     audioRef.current = audio;
+    audioEpisodeIdRef.current = episode.id;
 
     setPlayingId(episode.id);
     setProgress(0);
