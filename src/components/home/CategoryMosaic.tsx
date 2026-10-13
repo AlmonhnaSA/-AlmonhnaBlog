@@ -5,6 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Reveal } from "@/components/motion/Reveal";
 
 interface Cell { id: string; name: string; slug: string; count: number; color: string; }
+const placements = [[3, 5, 1, 3], [1, 3, 1, 2], [2, 3, 2, 4], [1, 2, 2, 3], [1, 2, 3, 4], [3, 5, 3, 4]];
+const partial: Record<number, number[][]> = {
+  1: [[1, 5, 1, 3]],
+  2: [[3, 5, 1, 3], [1, 3, 1, 3]],
+  3: [[3, 5, 1, 3], [1, 3, 1, 2], [1, 3, 2, 3]],
+  4: [[3, 5, 1, 3], [1, 3, 1, 2], [2, 3, 2, 3], [1, 2, 2, 3]],
+  5: [[3, 5, 1, 3], [1, 3, 1, 2], [2, 3, 2, 4], [1, 2, 2, 4], [3, 5, 3, 4]],
+};
+const place = (i: number, total: number) => {
+  const group = Math.floor(i / 6);
+  const rest = total - group * 6;
+  const [c1, c2, r1, r2] = rest < 6 ? partial[rest][i % 6] : placements[i % 6];
+  const o = group * 3;
+  return { gridColumn: `${c1} / ${c2}`, gridRow: `${r1 + o} / ${r2 + o}` };
+};
 const shape = (i: number) => ["mosaic-xl", "mosaic-wide", "mosaic-tall", "mosaic-medium", "mosaic-small", "mosaic-fill"][i % 6];
 const readableColor = (hex: string) => {
   const value = hex.replace("#", "");
@@ -33,7 +48,7 @@ export const CategoryMosaic = () => {
   </Reveal>
      
       <div className={`mosaic-layout p-5 ${active ? "has-active" : ""}`} onMouseLeave={() => setActive(null)}>
-          {cells.map((cell, i) => <Reveal key={cell.id} delay={i * 55} variant="scale" className={`${shape(i)} mosaic-reveal`}><Link to={`/articles?category=${encodeURIComponent(cell.slug)}`} onMouseEnter={() => setActive(cell.id)} className={`mosaic-cell ${active === cell.id ? "is-active" : ""}`} style={{ backgroundColor: cell.color, color: readableColor(cell.color) }}><strong>{cell.name}</strong><span className="mosaic-count">{cell.count} مقال</span></Link></Reveal>)}
+          {cells.map((cell, i) => <Reveal key={cell.id} delay={i * 55} variant="scale" style={place(i, cells.length)} className={`${shape(i)} mosaic-reveal`}><Link to={`/articles?category=${encodeURIComponent(cell.slug)}`} onMouseEnter={() => setActive(cell.id)} className={`mosaic-cell ${active === cell.id ? "is-active" : ""}`} style={{ backgroundColor: cell.color, color: readableColor(cell.color) }}><strong>{cell.name}</strong><span className="mosaic-count">{cell.count} مقال</span></Link></Reveal>)}
         </div>
       </div>
     </section>
