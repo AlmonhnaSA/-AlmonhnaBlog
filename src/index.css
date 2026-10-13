@@ -11721,3 +11721,6 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
   .ask-form-footer { justify-content: flex-start !important; }
   .ask-panel-footer span { line-height: 1.8; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 }
+@media (max-width: 640px) {
+  .ask-panel-footer span { background: none !important; text-decoration: underline; text-decoration-color: hsl(var(--primary) / .75); text-decoration-thickness: .3em; text-underline-offset: .05em; text-decoration-skip-ink: none; line-height: 2; }
+}
