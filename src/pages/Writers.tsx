@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
@@ -18,6 +20,7 @@ interface Writer {
 }
 
 const Writers = () => {
+  const [query, setQuery] = useState("");
   const [writers, setWriters] = useState<Writer[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -56,6 +59,7 @@ const Writers = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">جميع الكتّاب</h1>
           <p className="text-muted-foreground">تعرف على كتابنا المتميزين في المُنحنى</p>
+          <SearchInput value={query} onChange={setQuery} placeholder="ابحث عن كاتب…" className="mt-5" />
         </div>
 
         {loading ? (
@@ -70,7 +74,7 @@ const Writers = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {writers.map((writer) => (
+            {searchItems(writers, query).map((writer) => (
             <Card key={writer.id} className="overflow-hidden hover:shadow-lg transition-shadow">
   <CardContent className="p-3">
     <Link to={`/writers/${writer.id}`} className="block">

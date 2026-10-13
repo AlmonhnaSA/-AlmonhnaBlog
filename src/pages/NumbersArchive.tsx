@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useEffect, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
@@ -24,6 +26,7 @@ const toArabicNumber = (value: number) => {
 };
 
 const NumbersArchive = () => {
+  const [query, setQuery] = useState("");
   const [items, setItems] = useState<NumberItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -52,11 +55,12 @@ const NumbersArchive = () => {
   // Pagination
   // =========================================
 
+  const filteredItems = searchItems(items, query);
   const totalPages = Math.ceil(
-    items.length / ITEMS_PER_PAGE
+    filteredItems.length / ITEMS_PER_PAGE
   );
 
-  const paginatedItems = items.slice(
+  const paginatedItems = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -101,6 +105,7 @@ const NumbersArchive = () => {
             <em>تحكي حكايات كبيرة</em>
           </h1>
 
+          <SearchInput value={query} onChange={(v) => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث في الأرقام…" className="mx-auto my-5" />
           <p>
             مجموعة من الأرقام التي مرّت في
             المُنحنى، وكل رقم منها يخفي خلفه

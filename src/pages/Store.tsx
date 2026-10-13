@@ -1,3 +1,5 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
@@ -22,6 +24,7 @@ const remainingLabel = (n: number) => {
 };
 
 const Store = () => {
+  const [query, setQuery] = useState("");
   const [userArticleCount, setUserArticleCount] = useState(0);
   const [isWriter, setIsWriter] = useState(false);
   const [userChecked, setUserChecked] = useState(false);
@@ -149,6 +152,7 @@ const Store = () => {
       <main className="min-h-screen py-8 px-4">
         <div className="container">
           <h1 className="text-4xl font-bold mb-2">المتجر</h1>
+          <SearchInput value={query} onChange={setQuery} placeholder="ابحث في المتجر…" className="mb-6" />
 
           {userChecked && isWriter && products && products.length > 0 && (() => {
             const next = [...products]
@@ -180,7 +184,7 @@ const Store = () => {
 
           {products && products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              {products.map((product) => {
+              {searchItems(products, query).map((product) => {
                 const mainImg =
                   selectedImages[product.id] || product.image_url;
 
