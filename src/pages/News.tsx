@@ -24,7 +24,7 @@ interface NewsItem {
   };
 }
 
-const featuredServices: { title: string; description: string; features?: string[]; [key: string]: unknown }[] = [
+const featuredServices: { title: string; description: string; features?: string[]; icon: typeof PenLine; featured?: boolean; accent: string }[] = [
   {
     title: "صياغة المحتوى الاقتصادي",
     description:
