@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface News {
 }
 
 export const ManageNews = () => {
+  const search = useDashboardSearch();
   const [news, setNews] = useState<News[]>([]);
   const [rejectionPopup, setRejectionPopup] = useState<{ open: boolean; reason: string }>({ open: false, reason: "" });
   const { toast } = useToast();
@@ -113,7 +115,7 @@ export const ManageNews = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {news.map((newsItem) => (
+        {search(news).map((newsItem) => (
           <Card key={newsItem.id}>
             <CardHeader>
               <div className="flex justify-between items-start gap-4">

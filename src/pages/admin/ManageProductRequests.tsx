@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 const ManageProductRequests = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; requestId: string }>({ open: false, requestId: "" });
@@ -75,7 +77,7 @@ const ManageProductRequests = () => {
 
       {requests && requests.length > 0 ? (
         <div className="space-y-4">
-          {requests.map((req: any) => (
+          {search(requests).map((req: any) => (
             <Card key={req.id} className="p-4">
               <div className="flex items-start gap-4">
                 {req.store_products?.image_url && (

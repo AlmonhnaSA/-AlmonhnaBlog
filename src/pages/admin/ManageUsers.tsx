@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ import {
 const DEFAULT_ADMIN_EMAIL = "admin@almonhna.sa";
 
 export default function ManageUsers() {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -277,7 +279,7 @@ export default function ManageUsers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users?.map((user) => (
+                {search(users).map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>

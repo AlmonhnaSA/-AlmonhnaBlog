@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Download, Copy, Trash2, Save } from "lucide-react";
 import { toPng } from "html-to-image";
+import QuoteCardGallery from "@/components/quote/QuoteCardGallery";
 import QuoteCardPreview, { QuoteCardData, QuoteSize } from "@/components/quote/QuoteCardPreview";
 
 const COLORS = ["#3b9d90", "#0f3833", "#e1a437", "#4b7f2f", "#2a514e", "#a33b2a"];
@@ -26,6 +28,7 @@ interface SavedCard extends QuoteCardData {
 }
 
 const WriterQuoteCards = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
   const [profileId, setProfileId] = useState<string>("");
@@ -283,16 +286,7 @@ const WriterQuoteCards = () => {
           {cards.length === 0 ? (
             <p className="text-muted-foreground text-sm">لا توجد بطاقات محفوظة بعد.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {cards.map((c) => (
-                <div key={c.id} className="space-y-2">
-                  <QuoteCardPreview data={c} />
-                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(c.id)}>
-                    <Trash2 className="w-4 h-4 ml-1" /> حذف
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <QuoteCardGallery cards={search(cards) as any} onDelete={handleDelete} />
           )}
         </CardContent>
       </Card>

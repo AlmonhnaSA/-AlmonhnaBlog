@@ -1,12 +1,14 @@
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
-import { ArticleCard } from "@/components/ArticleCard";
+import { LatestArticleCard } from "@/components/LatestArticleCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { parseSequencePoints } from "@/lib/articleExtras";
 import { cn } from "@/lib/utils";
+import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 import { Button } from "@/components/ui/button";
 
 interface Article {
@@ -39,6 +41,7 @@ const Articles = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [query, setQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeSlug = searchParams.get("category") || "";
@@ -51,6 +54,7 @@ const Articles = () => {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
 
       const [
         { data: initialArticles, error },
@@ -68,6 +72,7 @@ const Articles = () => {
             )
           `)
           .eq("status", "approved")
+          .or(hidden ?? "id.not.is.null")
           .order("approved_at", { ascending: false })
           .range(0, ARTICLES_PER_PAGE - 1),
 
@@ -120,6 +125,7 @@ const Articles = () => {
 
       const from = articles.length;
       const to = from + ARTICLES_PER_PAGE - 1;
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
 
       const { data, error } = await supabase
         .from("articles")
@@ -132,6 +138,7 @@ const Articles = () => {
           )
         `)
         .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
         .order("approved_at", { ascending: false })
         .range(from, to);
 
@@ -188,13 +195,58 @@ const Articles = () => {
     [categories]
   );
 
-  const visible = useMemo(() => {
-    if (!activeSlug) return articles;
+  const [searchResults, setSearchResults] = useState<Article[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) { setSearchResults(null); return; }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
+      const safe = q.replace(/[%,()]/g, " ");
+      const { data } = await supabase
+        .from("articles")
+        .select(`*, profiles ( id, name, photo_url )`)
+        .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
+        .or(`title.ilike.%${safe}%,excerpt.ilike.%${safe}%,content.ilike.%${safe}%`)
+        .order("approved_at", { ascending: false })
+        .limit(60);
+      setSearchResults((data as Article[]) || []);
+      setSearching(false);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [query]);
 
-    return articles.filter((article) =>
+  const [categoryResults, setCategoryResults] = useState<Article[] | null>(null);
+  useEffect(() => {
+    if (!activeSlug) { setCategoryResults(null); return; }
+    const ids = Object.keys(articleCategories).filter((id) => articleCategories[id].includes(activeSlug));
+    if (!ids.length) { setCategoryResults([]); return; }
+    let cancelled = false;
+    (async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
+      const { data } = await supabase
+        .from("articles")
+        .select(`*, profiles ( id, name, photo_url )`)
+        .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
+        .in("id", ids)
+        .order("approved_at", { ascending: false });
+      if (!cancelled) setCategoryResults((data as Article[]) || []);
+    })();
+    return () => { cancelled = true; };
+  }, [activeSlug, articleCategories]);
+
+  const visible = useMemo(() => {
+    if (!searchResults && activeSlug && categoryResults) return categoryResults;
+    const source = searchResults ?? articles;
+    if (!activeSlug) return source;
+
+    return source.filter((article) =>
       (articleCategories[article.id] || []).includes(activeSlug)
     );
-  }, [articles, articleCategories, activeSlug]);
+  }, [articles, searchResults, categoryResults, articleCategories, activeSlug]);
 
   const selectCategory = (slug: string) => {
     if (slug) {
@@ -218,6 +270,8 @@ const Articles = () => {
           <p className="text-muted-foreground">
 كل ما نشر على المُنحنى , مرتباً من الأحدث           </p>
         </div>
+
+        <SearchInput value={query} onChange={setQuery} placeholder="ابحث في المقالات…" className="mb-6" />
 
         {/* Categories */}
         {categories.length > 0 && (
@@ -258,8 +312,8 @@ const Articles = () => {
         )}
 
         {/* Loading initial articles */}
-        {loading ? (
-          <div className="archive-article-grid">
+        {loading || searching ? (
+          <div className="latest-card-grid">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -270,7 +324,9 @@ const Articles = () => {
         ) : visible.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">
-              {activeSlug
+              {query.trim()
+                ? `لا توجد نتائج لـ "${query.trim()}"`
+                : activeSlug
                 ? `لا توجد مقالات في "${
                     slugToName[activeSlug] || activeSlug
                   }" حالياً`
@@ -280,33 +336,30 @@ const Articles = () => {
         ) : (
           <>
             {/* Articles */}
-            <div className="archive-article-grid">
+            <div className="latest-card-grid">
               {visible.map((article) => (
-                <ArticleCard
+                <LatestArticleCard
                   key={article.id}
-                   variant="archive"
-                  id={article.id}
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  coverImage={article.cover_image_url}
-                  author={{
-                    name: article.profiles.name,
-                    photo: article.profiles.photo_url || undefined,
+                  article={{
+                    id: article.id,
+                    title: article.title,
+                    excerpt: article.excerpt,
+                    content: (article as any).content,
+                    cover_image_url: article.cover_image_url,
+                    created_at: article.created_at,
+                    approved_at: article.approved_at ?? null,
+                    sequence_points: article.sequence_points,
+                    profiles: article.profiles,
                   }}
-                   date={article.approved_at || article.created_at}
-                  type="article"
                   categories={(articleCategories[article.id] || [])
                     .map((slug) => slugToName[slug])
                     .filter(Boolean)}
-                  sequencePoints={parseSequencePoints(
-                    article.sequence_points
-                  )}
                 />
               ))}
             </div>
 
          {/* Load More */}
-{hasMore && (
+{hasMore && !query.trim() && !activeSlug && (
   <div className="flex flex-col items-center justify-center mt-16 mb-8">
     <Button
       variant="ghost"

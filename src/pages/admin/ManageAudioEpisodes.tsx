@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ interface Episode {
 }
 
 const ManageAudioEpisodes = () => {
+  const search = useDashboardSearch();
   const [items, setItems] = useState<Episode[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -124,7 +126,7 @@ const ManageAudioEpisodes = () => {
       </Card>
 
       <div className="space-y-2">
-        {items.map((t) => {
+        {search(items).map((t) => {
           const open = openId === t.id;
           return (
             <Card key={t.id} className="overflow-hidden">

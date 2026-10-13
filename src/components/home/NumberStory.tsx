@@ -127,7 +127,7 @@ const NumberStory = () => {
         </Reveal>
 
         <div className="number-section__footer">
-          <p>يتغيّر كل فترة ليحكي رواية أخرى</p>
+          <p>يتغيّر مع مرور الوقت ليحكي رواية مختلفة</p>
 
           <Link to="/numbers" className="number-history editorial-link">
             كل الأرقام

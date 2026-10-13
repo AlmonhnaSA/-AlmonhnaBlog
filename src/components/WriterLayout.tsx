@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LayoutDashboard, FileText, Newspaper, User, LogOut, Settings, Home, Quote } from "lucide-react";
+import { Menu, X, LayoutDashboard, FileText, Newspaper, User, LogOut, Settings, Home, Quote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSearchProvider, DashboardSearchBox } from "@/components/DashboardSearch";
 
 interface WriterLayoutProps {
   children: ReactNode;
@@ -16,6 +17,11 @@ export const WriterLayout = ({ children }: WriterLayoutProps) => {
   const { toast } = useToast();
   const [isWriter, setIsWriter] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
   const [profile, setProfile] = useState<{ name: string; photo_url?: string } | null>(null);
 
   useEffect(() => {
@@ -92,9 +98,21 @@ export const WriterLayout = ({ children }: WriterLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between gap-3 border-b bg-card px-4 py-3">
+        <h2 className="text-lg font-bold text-primary">لوحة الكاتب</h2>
+        <Button variant="ghost" size="icon" aria-label="القائمة" onClick={() => setMenuOpen(true)}>
+          <Menu className="w-6 h-6" />
+        </Button>
+      </header>
+      {menuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-foreground/40" onClick={() => setMenuOpen(false)} />
+      )}
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-card border-l min-h-screen p-6">
+        <aside className={`fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] overflow-y-auto bg-card border-l p-6 transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:translate-x-0 ${menuOpen ? "translate-x-0" : "translate-x-full"}`}>
+          <Button variant="ghost" size="icon" aria-label="إغلاق القائمة" className="lg:hidden absolute left-3 top-3" onClick={() => setMenuOpen(false)}>
+            <X className="w-5 h-5" />
+          </Button>
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6 pb-6 border-b">
               <Avatar className="h-12 w-12">
@@ -152,7 +170,7 @@ export const WriterLayout = ({ children }: WriterLayoutProps) => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">{children}</main>
+        <main className="dashboard-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8"><DashboardSearchProvider><DashboardSearchBox />{children}</DashboardSearchProvider></main>
       </div>
     </div>
   );

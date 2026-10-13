@@ -4,16 +4,19 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 
 export const HeroArticleSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ["hero-articles"],
     queryFn: async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
       const { data, error } = await supabase
         .from("articles")
         .select("id, title, excerpt, cover_image_url, approved_at, created_at, profiles:author_id(name, photo_url)")
         .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
         .order("approved_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(5);
@@ -45,7 +48,7 @@ export const HeroArticleSlider = () => {
   return (
     <div className="hero-article-slider group" aria-roledescription="عارض مقالات">
       <Link key={article.id} to={`/articles/${article.id}`} className="hero-article-slide">
-        <img src={article.cover_image_url} alt={article.title} />
+        <img src={article.cover_image_url} alt={article.title} loading="eager" fetchPriority="high" decoding="async" />
         <span className="hero-article-shade" aria-hidden="true" />
        
       </Link>

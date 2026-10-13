@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { Plus, Trash2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ManageProducts = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -56,7 +58,7 @@ const ManageProducts = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products?.map((product) => (
+        {search(products).map((product) => (
           <Card key={product.id} className="p-4">
             <img
               src={product.image_url}

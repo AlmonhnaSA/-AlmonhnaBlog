@@ -1,5 +1,11 @@
 # Project decisions
 
+- Load non-homepage routes on demand so editors, PDF tools, and administration code do not delay public startup.
+- Choose transformed image candidates from measured layout width and device pixel ratio, preserving original fallback and uploaded files; small portraits must not download cover-sized variants.
+
+- Keep public sticky header geometry unchanged across scroll states and use non-modal account dropdowns; scroll-lock and resizing must not displace navigation.
+- Scroll reveals play once by default, with repeat motion opt-in; keep the final homepage form free of continuous whole-panel and patterned-background motion to prevent boundary flicker and text shimmer.
+
 - Persist public service requests only through the validated, rate-limited edge endpoint; keep request reads/status updates admin-only under database RLS, and share validation between form and endpoint to prevent drift.
 - Service-request notifications use the existing SendGrid sender and a server-configured administration recipient; mail failure never turns a saved request into a failed submission and notification state stays visible to administrators.
 

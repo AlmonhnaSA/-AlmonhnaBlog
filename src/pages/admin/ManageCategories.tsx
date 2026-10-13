@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const slugify = (value: string) =>
     .toLowerCase() || `cat-${Date.now().toString(36)}`;
 
 const ManageCategories = () => {
+  const search = useDashboardSearch();
   const [categories, setCategories] = useState<Category[]>([]);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(CATEGORY_COLORS[2]);
@@ -131,7 +133,7 @@ const ManageCategories = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           {categories.length === 0 && <p className="text-muted-foreground">لا توجد تصنيفات بعد.</p>}
-          {categories.map((cat) => (
+          {search(categories).map((cat) => (
             <div key={cat.id} className="flex flex-col sm:flex-row sm:items-center gap-3 border border-border rounded-xl p-3">
               <Input className="flex-1" value={cat.name} onChange={(e) => rename(cat, e.target.value)} />
               <div className="flex items-center gap-1.5 shrink-0" aria-label={`لون ${cat.name}`}>
