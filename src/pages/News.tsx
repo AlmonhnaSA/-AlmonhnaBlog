@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestDialog } from "@/components/ServiceRequestDialog";
 
+
 interface NewsItem {
   id: string;
   title: string;
