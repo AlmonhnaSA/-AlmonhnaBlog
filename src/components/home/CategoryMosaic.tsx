@@ -20,6 +20,7 @@ const place = (i: number, total: number) => {
   const o = group * 3;
   return { gridColumn: `${c1} / ${c2}`, gridRow: `${r1 + o} / ${r2 + o}` };
 };
+const totalRows = (total: number) => { const full = Math.floor(total / 6); const rest = total % 6; return Math.max(1, full * 3 + (rest === 0 ? 0 : rest === 5 ? 3 : 2)); };
 const shape = (i: number) => ["mosaic-xl", "mosaic-wide", "mosaic-tall", "mosaic-medium", "mosaic-small", "mosaic-fill"][i % 6];
 const readableColor = (hex: string) => {
   const value = hex.replace("#", "");
@@ -47,7 +48,7 @@ export const CategoryMosaic = () => {
     </div>
   </Reveal>
      
-      <div className={`mosaic-layout p-5 ${active ? "has-active" : ""}`} onMouseLeave={() => setActive(null)}>
+      <div style={{ ["--mosaic-rows" as string]: totalRows(cells?.length || 0) }} className={`mosaic-layout p-5 ${active ? "has-active" : ""}`} onMouseLeave={() => setActive(null)}>
           {cells.map((cell, i) => <Reveal key={cell.id} delay={i * 55} variant="scale" style={place(i, cells.length)} className={`${shape(i)} mosaic-reveal`}><Link to={`/articles?category=${encodeURIComponent(cell.slug)}`} onMouseEnter={() => setActive(cell.id)} className={`mosaic-cell ${active === cell.id ? "is-active" : ""}`} style={{ backgroundColor: cell.color, color: readableColor(cell.color) }}><strong>{cell.name}</strong><span className="mosaic-count">{cell.count} مقال</span></Link></Reveal>)}
         </div>
       </div>
