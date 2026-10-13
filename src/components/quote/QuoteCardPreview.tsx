@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import logoLight from "@/assets/darkLogo.png";
 
 export type QuoteSize = "square" | "story" | "wide";
 
@@ -27,12 +28,12 @@ export const QuoteCardPreview = forwardRef<HTMLDivElement, { data: QuoteCardData
       <div
         ref={ref}
         dir="rtl"
-        className={`relative w-full overflow-hidden rounded-2xl p-7 flex flex-col justify-between ${sizeClass[size]}`}
+        className={`relative w-full overflow-hidden rounded-2xl p-[7%] flex flex-col justify-between ${sizeClass[size]}`}
         style={{ backgroundColor: "#0f3833" }}
       >
         {/* header */}
         <div className="flex items-center justify-between">
-          <span className="text-white/90 text-sm font-bold">المُنحنى</span>
+          <img src={logoLight} alt="المُنحنى" className="h-7 w-auto object-contain" crossOrigin="anonymous" />
           <span
             className="w-7 h-7 rounded-full"
             style={{ backgroundColor: data.color }}
@@ -41,7 +42,7 @@ export const QuoteCardPreview = forwardRef<HTMLDivElement, { data: QuoteCardData
 
         {/* quote */}
         <div className="flex-1 flex items-center">
-          <div className="relative pr-4">
+          <div className="relative z-10 pr-4">
             <span
               className="absolute right-0 top-1 bottom-1 w-1 rounded-full"
               style={{ backgroundColor: data.color }}

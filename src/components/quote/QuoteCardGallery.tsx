@@ -12,7 +12,7 @@ export interface GalleryQuoteCard extends QuoteCardData {
 }
 
 const sizeLabel: Record<string, string> = { square: "مربع", story: "ستوري", wide: "عريض" };
-const modalWidth: Record<string, string> = { square: "max-w-md", story: "max-w-xs", wide: "max-w-2xl" };
+const modalWidth: Record<string, string> = { square: "sm:max-w-md", story: "sm:max-w-[min(20rem,calc((92vh-9rem)*9/16))]", wide: "sm:max-w-2xl" };
 
 interface Props {
   cards: GalleryQuoteCard[];
@@ -67,13 +67,13 @@ export const QuoteCardGallery = ({ cards, onDelete, showWriter }: Props) => {
       </ul>
 
       <Dialog open={!!open} onOpenChange={(v) => !v && setOpenId(null)}>
-        <DialogContent dir="rtl" className={`${open ? modalWidth[open.size] || "max-w-md" : ""} w-[92vw] max-h-[92vh] overflow-y-auto p-5`}>
-          <DialogTitle className="text-base">بطاقة الاقتباس</DialogTitle>
+        <DialogContent dir="rtl" className={`${open ? modalWidth[open.size] || "max-w-md" : ""} w-[92vw] max-w-[92vw] max-h-[92vh] overflow-y-auto gap-4 p-5 [&>button]:left-4 [&>button]:right-auto`}>
+          <DialogTitle className="pl-8 text-right text-base">بطاقة الاقتباس</DialogTitle>
           <DialogDescription className="sr-only">معاينة البطاقة بتصميمها المختار</DialogDescription>
           {open && (
             <>
-              <QuoteCardPreview ref={ref} data={open} />
-              <div className="flex items-center justify-between gap-2">
+              <div className="mx-auto w-full"><QuoteCardPreview ref={ref} data={open} /></div>
+              <div className="relative z-10 flex items-center justify-between gap-2 border-t border-border pt-3">
                 <Button size="sm" onClick={download}><Download className="ml-1 h-4 w-4" /> تنزيل</Button>
                 <Button
                   size="sm"
