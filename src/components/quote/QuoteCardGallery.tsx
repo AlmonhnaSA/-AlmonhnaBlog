@@ -12,7 +12,12 @@ export interface GalleryQuoteCard extends QuoteCardData {
 }
 
 const sizeLabel: Record<string, string> = { square: "مربع", story: "ستوري", wide: "عريض" };
-const modalWidth: Record<string, string> = { square: "sm:max-w-md", story: "sm:max-w-[min(20rem,calc((92vh-9rem)*9/16))]", wide: "sm:max-w-2xl" };
+// Dialog width derives from the card ratio so card + title + buttons always fit in 92vh — no scrolling.
+const modalWidth: Record<string, string> = {
+  square: "w-[min(92vw,calc(92vh-10rem))]",
+  story: "w-[min(92vw,calc((92vh-10rem)*9/16))]",
+  wide: "w-[min(92vw,calc((92vh-10rem)*16/9))]",
+};
 
 interface Props {
   cards: GalleryQuoteCard[];
@@ -67,7 +72,7 @@ export const QuoteCardGallery = ({ cards, onDelete, showWriter }: Props) => {
       </ul>
 
       <Dialog open={!!open} onOpenChange={(v) => !v && setOpenId(null)}>
-        <DialogContent dir="rtl" className={`${open ? modalWidth[open.size] || "max-w-md" : ""} w-[92vw] max-w-[92vw] max-h-[92vh] overflow-y-auto gap-4 p-5 [&>button]:left-4 [&>button]:right-auto`}>
+        <DialogContent dir="rtl" className={`${open ? modalWidth[open.size] || modalWidth.square : modalWidth.square} gap-4 p-5 [&>button]:left-4 [&>button]:right-auto`}>
           <DialogTitle className="pl-8 text-right text-base">بطاقة الاقتباس</DialogTitle>
           <DialogDescription className="sr-only">معاينة البطاقة بتصميمها المختار</DialogDescription>
           {open && (
