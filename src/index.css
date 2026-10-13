@@ -11711,3 +11711,13 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
   .latest-card-categories { order: 3; flex-basis: 100%; }
   .latest-card-author strong { max-width: 9rem; }
 }
+
+/* Mobile responsive audit fixes */
+.number-card__value { white-space: nowrap; direction: ltr; unicode-bidi: isolate; }
+@media (max-width: 640px) {
+  .number-card__value { font-size: clamp(3rem, 17vw, 5rem) !important; line-height: 1.1 !important; }
+  .ask-contact-fields { grid-auto-rows: auto !important; align-content: start !important; }
+  .ask-contact-fields input, .ask-form-footer input { height: 2.75rem !important; min-height: 0 !important; flex: 0 0 auto !important; }
+  .ask-form-footer { justify-content: flex-start !important; }
+  .ask-panel-footer span { line-height: 1.8; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+}
