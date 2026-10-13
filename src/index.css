@@ -11726,7 +11726,7 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
-.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(19rem, 32vw, 25rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
+.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(17rem, 30vw, 22rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
 .mosaic-cell { min-height: 0 !important; padding: .4rem !important; justify-content: center !important; }
 .mosaic-cell strong { line-height: 1.25 !important; }
 @media (max-width: 1023px) {
