@@ -7,6 +7,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import Reveal from "@/components/motion/Reveal";
+import { resolveAudioUrl } from "@/lib/audioUrl";
 import {
   Headphones,
   Pause,
@@ -259,7 +260,7 @@ useEffect(() => {
 
                   <audio
                     ref={audioRef}
-                    src={current.audio_url}
+                    src={resolveAudioUrl(current.audio_url)}
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onTimeUpdate={(e) => {
