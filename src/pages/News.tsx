@@ -53,7 +53,7 @@ const featuredServices: { title: string; description: string; features?: string[
   {
     title: "مقالك مسموعاً ",
     description:
-      "أرسل كلماتك لتسمعها - ونعيدها اليك ملفاً جاهزاً للنشر ",
+      "أرسل كلماتك لتسمعها ونعيدها اليك ملفاً جاهزاً للنشر ",
     // features: [
     //   "تعليق صوتي باللغة العربية",
     //   "أداء يناسب طبيعة المحتوى",
