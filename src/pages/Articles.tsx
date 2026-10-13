@@ -218,14 +218,35 @@ const Articles = () => {
     return () => clearTimeout(t);
   }, [query]);
 
+  const [categoryResults, setCategoryResults] = useState<Article[] | null>(null);
+  useEffect(() => {
+    if (!activeSlug) { setCategoryResults(null); return; }
+    const ids = Object.keys(articleCategories).filter((id) => articleCategories[id].includes(activeSlug));
+    if (!ids.length) { setCategoryResults([]); return; }
+    let cancelled = false;
+    (async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
+      const { data } = await supabase
+        .from("articles")
+        .select(`*, profiles ( id, name, photo_url )`)
+        .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
+        .in("id", ids)
+        .order("approved_at", { ascending: false });
+      if (!cancelled) setCategoryResults((data as Article[]) || []);
+    })();
+    return () => { cancelled = true; };
+  }, [activeSlug, articleCategories]);
+
   const visible = useMemo(() => {
+    if (!searchResults && activeSlug && categoryResults) return categoryResults;
     const source = searchResults ?? articles;
     if (!activeSlug) return source;
 
     return source.filter((article) =>
       (articleCategories[article.id] || []).includes(activeSlug)
     );
-  }, [articles, searchResults, articleCategories, activeSlug]);
+  }, [articles, searchResults, categoryResults, articleCategories, activeSlug]);
 
   const selectCategory = (slug: string) => {
     if (slug) {
@@ -338,7 +359,7 @@ const Articles = () => {
             </div>
 
          {/* Load More */}
-{hasMore && (
+{hasMore && !query.trim() && !activeSlug && (
   <div className="flex flex-col items-center justify-center mt-16 mb-8">
     <Button
       variant="ghost"
