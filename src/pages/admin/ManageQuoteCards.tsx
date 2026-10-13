@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
-import QuoteCardPreview, { QuoteCardData, QuoteSize } from "@/components/quote/QuoteCardPreview";
+import QuoteCardGallery from "@/components/quote/QuoteCardGallery";
+import { QuoteCardData, QuoteSize } from "@/components/quote/QuoteCardPreview";
 
 interface AdminQuoteCard extends QuoteCardData {
   id: string;
@@ -56,20 +55,7 @@ const ManageQuoteCards = () => {
           ) : cards.length === 0 ? (
             <p className="text-muted-foreground text-sm">لا توجد بطاقات بعد.</p>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {cards.map((c) => (
-                <div key={c.id} className="space-y-2">
-                  <QuoteCardPreview data={c} />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{c.writer_name}</span>
-                    <span>{new Date(c.created_at).toLocaleDateString("ar")}</span>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(c.id)}>
-                    <Trash2 className="w-4 h-4 ml-1" /> حذف
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <QuoteCardGallery cards={cards as any} onDelete={handleDelete} showWriter />
           )}
         </CardContent>
       </Card>
