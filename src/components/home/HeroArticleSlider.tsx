@@ -4,16 +4,19 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 
 export const HeroArticleSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ["hero-articles"],
     queryFn: async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
       const { data, error } = await supabase
         .from("articles")
         .select("id, title, excerpt, cover_image_url, approved_at, created_at, profiles:author_id(name, photo_url)")
         .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
         .order("approved_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(5);
