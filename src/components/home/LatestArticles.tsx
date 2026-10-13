@@ -7,6 +7,7 @@ import { LikeButton } from "@/components/LikeButton";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { ShareButton } from "@/components/ShareDialog";
 import { readingTimeMinutes } from "@/lib/articleExtras";
+import { excludeVisualColumnsFilter, getVisualColumnIds } from "@/lib/visualColumns";
 
 const sequence = (value: unknown): string[] =>
   Array.isArray(value)
@@ -17,10 +18,12 @@ export const LatestArticles = () => {
   const { data: articles, isLoading } = useQuery({
     queryKey: ["home-latest-articles"],
     queryFn: async () => {
+      const hidden = excludeVisualColumnsFilter(await getVisualColumnIds());
       const { data, error } = await supabase
         .from("articles")
         .select(`id, title, excerpt, content, cover_image_url, created_at, approved_at, sequence_points, profiles:author_id (id, name, photo_url), article_categories (categories:category_id (name))`)
         .eq("status", "approved")
+        .or(hidden ?? "id.not.is.null")
         .order("approved_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(4);
