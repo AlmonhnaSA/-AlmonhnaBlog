@@ -23,6 +23,7 @@ export const installImageOptimizer = () => {
   (window as any).__imgOpt = true;
   const originals = new WeakMap<HTMLImageElement, string>();
   const autoSizes = new WeakSet<HTMLImageElement>();
+  const autoSrcSets = new WeakSet<HTMLImageElement>();
   const nativeSet = Element.prototype.setAttribute;
   const updateSize = (img: HTMLImageElement) => {
     if (!autoSizes.has(img)) return;
@@ -47,7 +48,8 @@ export const installImageOptimizer = () => {
       if (originals.get(img) !== url) return;
       if (!img.hasAttribute("sizes")) autoSizes.add(img);
       updateSize(img);
-      if (!img.hasAttribute("srcset")) {
+      if (!img.hasAttribute("srcset") || autoSrcSets.has(img)) {
+        autoSrcSets.add(img);
         nativeSet.call(img, "srcset", WIDTHS.map((w) => `${variant(url, w)} ${w}w`).join(", "));
       }
       nativeSet.call(img, "src", variant(url, 960));
@@ -59,6 +61,14 @@ export const installImageOptimizer = () => {
     if (this instanceof HTMLImageElement && name === "src" && canOptimize(value)) {
       apply(this, value);
       return;
+    }
+    if (this instanceof HTMLImageElement && name === "src" && originals.has(this)) {
+      originals.delete(this);
+      resizeObserver.unobserve(this);
+      if (autoSrcSets.has(this)) this.removeAttribute("srcset");
+      if (autoSizes.has(this)) this.removeAttribute("sizes");
+      autoSrcSets.delete(this);
+      autoSizes.delete(this);
     }
     return nativeSet.call(this, name, value);
   };
@@ -73,7 +83,15 @@ export const installImageOptimizer = () => {
       get() { return getSrc.call(this); },
       set(v: string) {
         if (canOptimize(v)) apply(this, v);
-        else setSrc.call(this, v);
+        else {
+          originals.delete(this);
+          resizeObserver.unobserve(this);
+          if (autoSrcSets.has(this)) this.removeAttribute("srcset");
+          if (autoSizes.has(this)) this.removeAttribute("sizes");
+          autoSrcSets.delete(this);
+          autoSizes.delete(this);
+          setSrc.call(this, v);
+        }
       },
     });
   }
@@ -87,6 +105,7 @@ export const installImageOptimizer = () => {
     originals.delete(img);
     resizeObserver.unobserve(img);
     autoSizes.delete(img);
+    autoSrcSets.delete(img);
     img.removeAttribute("srcset");
     img.removeAttribute("sizes");
     nativeSet.call(img, "src", orig);
