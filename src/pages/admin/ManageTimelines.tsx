@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ interface Timeline {
 const COLORS = ["#00343A", "#3b6561", "#47716d", "#e1a437", "#b4532a", "#5b4b8a"];
 
 const ManageTimelines = () => {
+  const search = useDashboardSearch();
   const [timelines, setTimelines] = useState<Timeline[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -147,7 +149,7 @@ const ManageTimelines = () => {
       </Card>
 
       <div className="space-y-2">
-        {timelines.map((t) => {
+        {search(timelines).map((t) => {
           const open = openId === t.id;
           return (
             <Card key={t.id} className="overflow-hidden">

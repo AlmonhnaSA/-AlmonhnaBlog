@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 const ManageArticles = () => {
+  const search = useDashboardSearch();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -107,7 +109,7 @@ const ManageArticles = () => {
       <h1 className="text-3xl font-bold mb-8">إدارة المقالات</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {articles?.map((article) => (
+        {search(articles).map((article) => (
           <Card key={article.id} className="p-6">
             <div className="flex gap-4">
               <img src={article.cover_image_url} alt={article.title} className="w-32 h-32 object-cover rounded" />

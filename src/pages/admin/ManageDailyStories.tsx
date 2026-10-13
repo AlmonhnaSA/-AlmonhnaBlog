@@ -1,3 +1,4 @@
+import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,7 @@ const StoryForm = ({
 };
 
 const ManageDailyStories = () => {
+  const search = useDashboardSearch();
   const [stories, setStories] = useState<StoryDraft[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [draft, setDraft] = useState<StoryDraft>(emptyDraft);
@@ -213,7 +215,7 @@ const ManageDailyStories = () => {
         </CardContent>
       </Card>
 
-      {stories.map((story) => (
+      {search(stories).map((story) => (
         <Card key={story.id}>
           <CardHeader>
             <CardTitle className="text-lg">

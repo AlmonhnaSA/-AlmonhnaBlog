@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, X, LayoutDashboard, FileText, Newspaper, User, LogOut, Settings, Home, Quote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSearchProvider, DashboardSearchBox } from "@/components/DashboardSearch";
 
 interface WriterLayoutProps {
   children: ReactNode;
@@ -169,7 +170,7 @@ export const WriterLayout = ({ children }: WriterLayoutProps) => {
         </aside>
 
         {/* Main Content */}
-        <main className="dashboard-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="dashboard-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8"><DashboardSearchProvider><DashboardSearchBox />{children}</DashboardSearchProvider></main>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LayoutDashboard, FileText, Newspaper, Users, Package, LogOut, UserCog, Settings, Home, ShoppingBag, ClipboardList, Tags, Sparkles, MessageCircleQuestion, GitBranch, Quote, Hash, AudioLines } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSearchProvider, DashboardSearchBox } from "@/components/DashboardSearch";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -157,7 +158,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         </aside>
 
         {/* Main Content */}
-        <main className="dashboard-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="dashboard-main flex-1 min-w-0 p-4 sm:p-6 lg:p-8"><DashboardSearchProvider><DashboardSearchBox />{children}</DashboardSearchProvider></main>
       </div>
     </div>
   );
