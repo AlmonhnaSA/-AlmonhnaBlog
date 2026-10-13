@@ -10,8 +10,8 @@ const bucket: R2BucketLike = {
   },
   async get(k, o) {
     if (k !== KEY) return null;
-    const o: any = o2(o);
-    return { size: data.length, range: o, body: new Response(data.slice(o.offset, o.offset + o.length)).body };
+    const r: any = o2(o);
+    return { size: data.length, range: r, body: new Response(data.slice(r.offset, r.offset + r.length)).body };
   },
 };
 function o2(o: any) {
