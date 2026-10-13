@@ -6842,8 +6842,10 @@ margin-bottom:5rem;
   text-align: right;
 }
 
-
-
+.numbers-archive-page .number-story-link {
+  margin: 1rem 0 0.2rem;
+  align-self: flex-start;
+}
 
 .numbers-archive-page .number-story:hover {
   transform: translateY(-6px);
