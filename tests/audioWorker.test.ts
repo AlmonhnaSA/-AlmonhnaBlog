@@ -76,3 +76,56 @@ describe("resolveAudioUrl", () => {
     expect(resolveAudioUrl(n, "https://audio.example")).toBe(n);
   });
 });
+
+describe("audio worker final review", () => {
+  test("malformed or multi-range is ignored with a full 200", async () => {
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=0-1,5-6" }), env, undefined, null);
+    expect(r.status).toBe(200);
+  });
+  test("bytes=-0 is 416", async () => {
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=-0" }), env, undefined, null);
+    expect(r.status).toBe(416);
+  });
+  test("If-Range with a different ETag returns the full file", async () => {
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=0-9", "If-Range": '"old"' }), env, undefined, null);
+    expect(r.status).toBe(200);
+  });
+  test("If-Range with the same ETag returns the range", async () => {
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=0-9", "If-Range": '"e1"' }), env, undefined, null);
+    expect(r.status).toBe(206);
+  });
+  test("HEAD returns size without a body", async () => {
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", {}, "HEAD"), env, undefined, null);
+    expect(r.status).toBe(200);
+    expect(r.headers.get("Content-Length")).toBe("1000");
+    expect((await r.arrayBuffer()).byteLength).toBe(0);
+  });
+  test("10 concurrent misses in one isolate trigger only one background fill", async () => {
+    let fullGets = 0;
+    const counting: R2BucketLike = {
+      head: bucket.head,
+      async get(k, o) { if (!o?.range) fullGets++; return bucket.get(k, o); },
+    };
+    const store = new Map<string, Response>();
+    const cache = {
+      async match(r: Request) { return store.get(r.url)?.clone(); },
+      async put(r: Request, res: Response) { await res.arrayBuffer(); store.set(r.url, new Response(new Uint8Array(1))); },
+    };
+    const jobs: Promise<unknown>[] = [];
+    const ctx = { waitUntil: (p: Promise<unknown>) => jobs.push(p) };
+    await Promise.all(Array.from({ length: 10 }, (_, i) =>
+      handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: `bytes=${i}-${i + 9}` }), { AUDIO_BUCKET: counting }, ctx, cache)));
+    await Promise.all(jobs);
+    expect(fullGets).toBe(1);
+    expect(store.size).toBe(1);
+  });
+  test("edge copy expires in 7 days while browsers keep a year", async () => {
+    const store = new Map<string, Response>();
+    const cache = { async match() { return undefined; }, async put(r: Request, res: Response) { store.set(r.url, res); } };
+    const jobs: Promise<unknown>[] = [];
+    const r = await handleRequest(req("/episodes/7ce8d098/a.mp3", { Range: "bytes=0-9" }), env, { waitUntil: (p) => jobs.push(p) }, cache);
+    await Promise.all(jobs);
+    expect(r.headers.get("Cache-Control")).toBe("public, max-age=31536000, immutable");
+    expect([...store.values()][0].headers.get("Cache-Control")).toBe("public, max-age=604800");
+  });
+});
