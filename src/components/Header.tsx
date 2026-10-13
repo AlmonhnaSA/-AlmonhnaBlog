@@ -186,9 +186,9 @@ export const Header = () => {
           <div className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
             {user ? (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button variant="ghost" aria-label="قائمة الحساب" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={profile?.photo_url} alt={profile?.name || user.email} />
                       <AvatarFallback>
@@ -244,7 +244,7 @@ export const Header = () => {
           </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label="فتح قائمة التنقل">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>

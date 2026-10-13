@@ -840,10 +840,10 @@
 .dark .site-header.is-scrolled {
   background: #101b1f;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
-}.site-header-inner { height: 5rem; transition: height .35s ease; }
-.site-header.is-scrolled .site-header-inner { height: 4.25rem; }
-.site-logo { width: 11rem; height: 3.5rem; transition: width .35s ease, height .35s ease; }
-.site-header.is-scrolled .site-logo { width: 9rem; height: 2.9rem; }
+}.site-header-inner { height: 5rem; }
+/* Keep scroll-state changes paint-only: resizing a sticky header shifts the
+   scroll position and can repeatedly cross its activation threshold. */
+.site-logo { width: 11rem; height: 3.5rem; }
 .site-nav-link { position: relative; }
 .site-nav-link::after { content: ""; position: absolute; inset-inline: 0; bottom: -.45rem; height: 1px; background: hsl(var(--primary)); transform: scaleX(0); transition: transform .35s ease; }
 .site-nav-link:hover::after { transform: scaleX(1); }
