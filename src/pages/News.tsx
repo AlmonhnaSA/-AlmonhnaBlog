@@ -9,6 +9,8 @@ import { ArrowLeft, BarChart3, Mic2, PenLine } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ServiceRequestDialog } from "@/components/ServiceRequestDialog";
+import { SearchInput } from "@/components/DashboardSearch";
+import { searchItems } from "@/lib/searchItems";
 
 
 interface NewsItem {
@@ -68,6 +70,8 @@ const News = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [requestedService, setRequestedService] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const filteredNews = searchItems(news, query);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -213,9 +217,11 @@ const News = () => {
               </div>
               
               <span className="services-count">
-                {news.length.toLocaleString("ar-SA")} خدمات
+                {filteredNews.length.toLocaleString("ar-SA")} خدمات
               </span>
             </div>
+
+            <SearchInput value={query} onChange={setQuery} placeholder="ابحث في الخدمات…" className="mb-6" />
 
             {loading ? (
               <div
@@ -229,13 +235,13 @@ const News = () => {
                   />
                 ))}
               </div>
-            ) : news.length === 0 ? (
+            ) : filteredNews.length === 0 ? (
               <div className="services-empty">
-                <p>لا توجد خدمات إضافية منشورة حاليًا.</p>
+                <p>{query.trim() ? "لا توجد خدمات تطابق بحثك." : "لا توجد خدمات إضافية منشورة حاليًا."}</p>
               </div>
             ) : (
               <div className="services-more-grid">
-                {news.map((item) => (
+                {filteredNews.map((item) => (
                   <Link
                     key={item.id}
                     to={`/news/${item.id}`}

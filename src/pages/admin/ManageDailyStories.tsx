@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
 
 interface Stop {
   title: string;
@@ -118,7 +118,7 @@ const StoryForm = ({
               className="flex items-start gap-2 border border-border rounded-xl p-3"
             >
               <GripVertical className="w-4 h-4 mt-3 text-muted-foreground cursor-grab shrink-0" />
-              <div className="flex-1 space-y-2">
+              <div className="min-w-0 flex-1 space-y-2">
                 <Input value={stop.title} onChange={(e) => setStop(i, { title: e.target.value })} placeholder={`عنوان المحطة ${i + 1}`} maxLength={90} />
                 <Textarea value={stop.description || ""} onChange={(e) => setStop(i, { description: e.target.value })} placeholder="وصف مختصر (اختياري)" rows={2} maxLength={200} />
               </div>
@@ -143,6 +143,8 @@ const ManageDailyStories = () => {
   const [stories, setStories] = useState<StoryDraft[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [draft, setDraft] = useState<StoryDraft>(emptyDraft);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
   const { toast } = useToast();
 
   const load = async () => {
@@ -188,6 +190,7 @@ const ManageDailyStories = () => {
       return;
     }
     setDraft(emptyDraft);
+    setNewOpen(false);
     toast({ title: "تم الحفظ", description: "تمت إضافة المقال" });
     load();
   };
@@ -205,25 +208,33 @@ const ManageDailyStories = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">مقال اليوم</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">مقال اليوم</h1>
 
       <Card>
-        <CardHeader><CardTitle>تجهيز مقال جديد </CardTitle></CardHeader>
-        <CardContent>
+        <CardHeader className="p-0">
+          <Button type="button" variant="ghost" className="h-auto w-full justify-between gap-3 whitespace-normal px-4 py-3 text-right" aria-expanded={newOpen} aria-controls="new-daily-story" onClick={() => setNewOpen(!newOpen)}>
+            <span className="flex items-center gap-2"><Plus className="h-4 w-4 shrink-0" /> تجهيز مقال جديد</span>
+            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${newOpen ? "rotate-180" : ""}`} />
+          </Button>
+        </CardHeader>
+        <CardContent id="new-daily-story" hidden={!newOpen} className="px-4 pb-4">
           <StoryForm draft={draft} articles={articles} onChange={setDraft} onSave={create} />
         </CardContent>
       </Card>
 
-      {search(stories).map((story) => (
+      {search(stories.map((story) => ({ ...story, article_title: articles.find((a) => a.id === story.article_id)?.title || "مقال" }))).map((story) => (
         <Card key={story.id}>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {articles.find((a) => a.id === story.article_id)?.title || "مقال"}
-              {story.is_active ? "" : " (غير مفعّلة)"}
-            </CardTitle>
+          <CardHeader className="p-0">
+            <Button type="button" variant="ghost" className="h-auto w-full justify-between gap-3 whitespace-normal px-4 py-3 text-right" aria-expanded={openId === story.id} aria-controls={`daily-story-${story.id}`} onClick={() => setOpenId(openId === story.id ? null : story.id ?? null)}>
+              <span className="min-w-0 text-base font-bold [overflow-wrap:anywhere]">{story.article_title}</span>
+              <span className="flex shrink-0 items-center gap-2">
+                {!story.is_active && <span className="text-xs font-normal text-muted-foreground">مخفي</span>}
+                <ChevronDown className={`h-4 w-4 transition-transform ${openId === story.id ? "rotate-180" : ""}`} />
+              </span>
+            </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent id={`daily-story-${story.id}`} hidden={openId !== story.id} className="px-4 pb-4">
             <StoryForm
               draft={story}
               articles={articles}
