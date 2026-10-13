@@ -1,5 +1,6 @@
-// Almonhna audio Worker — FINAL. Paste into the Cloudflare dashboard editor.
+// Almonhna audio Worker — FINAL v3. Paste into the Cloudflare dashboard editor.
 // Needs an R2 bucket binding named AUDIO_BUCKET -> almonhna-audio.
+// Rule: never replace a file under the same path; upload every update under a new unique name.
 // src/index.ts
 var DEFAULT_ORIGINS = "https://www.almonhna.sa,https://almonhna.sa";
 var BROWSER_CACHE = "public, max-age=31536000, immutable";
@@ -149,17 +150,29 @@ async function handleRequest(request, env, ctx, cache = defaultCache()) {
   if (range.kind === "unsatisfiable")
     return plain(416, "Range Not Satisfiable", cors);
   const canonical = resolvedKeys.get(requested) || requested;
-  const v = url.searchParams.get("v");
-  const cacheKey = new Request(`${url.origin}/${canonical}${v ? `?v=${encodeURIComponent(v)}` : ""}`, { method: "GET" });
+  const cacheKey = new Request(`${url.origin}/${canonical}`, { method: "GET" });
   if (cache) {
     try {
       const matchHeaders = new Headers;
-      for (const k of ["Range", "If-None-Match", "If-Modified-Since", "If-Range"]) {
-        const v2 = request.headers.get(k);
-        if (v2)
-          matchHeaders.set(k, v2);
+      for (const k of ["Range", "If-None-Match", "If-Modified-Since"]) {
+        const v = request.headers.get(k);
+        if (v)
+          matchHeaders.set(k, v);
       }
-      const hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+      let hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+      const ifRangeHeader = request.headers.get("If-Range");
+      if (hit && hit.status === 206 && ifRangeHeader) {
+        const cachedMeta = {
+          size: 0,
+          httpEtag: hit.headers.get("ETag") || undefined,
+          uploaded: hit.headers.get("Last-Modified") ? new Date(hit.headers.get("Last-Modified")) : undefined
+        };
+        if (!ifRangeMatches(ifRangeHeader, cachedMeta)) {
+          hit.body?.cancel();
+          matchHeaders.delete("Range");
+          hit = await cache.match(new Request(cacheKey.url, { method: "GET", headers: matchHeaders }));
+        }
+      }
       if (hit)
         return withCors(hit, cors, "HIT", method === "HEAD");
     } catch (e) {
