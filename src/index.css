@@ -2394,9 +2394,9 @@ html:not(.dark)
   }
 
   .story-stop-copy {
-    width: 6rem;
-margin-left: 15px;
-    font-size: 1.3rem;
+    width: 9rem;
+    margin-inline: auto;
+    font-size: .98rem;
   }
 
   .story-stop-copy small {
@@ -4876,6 +4876,13 @@ margin-bottom:5rem;
     padding:
       .65rem
       .25rem;
+  }
+
+  .audio-all {
+    margin-top: 1rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+    line-height: 1.4;
   }
 
   
@@ -11390,7 +11397,7 @@ span {
 .gallery-swipe-track { display: flex; height: 100%; }
 .gallery-swipe-slide { border-radius:0rem; flex: 0 0 100%; min-width: 0; height: 100%; display: block; }
 .gallery-swipe-slide img { user-select: none; }
-.gallery-swipe-natural { border: 2px solid ; border-radius: 0rem; background: transparent; }
+.gallery-swipe-natural { border: 2px solid hsl(var(--border)); border-radius: 0rem; background: transparent; }
 .gallery-swipe-natural .gallery-swipe-slide img {  border-radius: 0rem; object-fit: contain; }
 .column-gallery-caption { padding-top: 1.25rem; min-height: 6.5rem; }
 .column-gallery-caption h2 { font-size: 1.35rem; line-height: 1.6; color: hsl(var(--foreground)); }
@@ -11632,6 +11639,14 @@ html.dark body:not(:has(.editorial-home)),
     border-radius: 3rem;
 }
 
+/* Artwork carries text: preserve its complete intrinsic composition. */
+.column-gallery .gallery-swipe-natural .gallery-swipe-slide {
+  border-radius: 0;
+}
+.column-gallery .gallery-swipe-natural .gallery-swipe-slide img {
+  object-fit: contain;
+}
+
 /* CSS viewport width, not zoom detection: preserve normal desktop shells. */
 @media (min-width: 2560px) {
   :root {
@@ -11734,16 +11749,32 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
-.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(17rem, 30vw, 22rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
-.mosaic-cell { min-height: 0 !important; padding: .4rem !important; justify-content: center !important; }
-.mosaic-cell strong { line-height: 1.25 !important; }
+.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(19rem, 30vw, 24rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
+.mosaic-cell { min-height: 0 !important; padding: .25rem !important; justify-content: center !important; gap: 0; container-type: size; }
+.mosaic-cell strong { font-size: 1rem; font-weight: 400; line-height: 1.25 !important; flex-shrink: 0; transform: none; transition: transform .3s ease; }
 @media (max-width: 1023px) {
-  .mosaic-layout { height: calc(clamp(16rem, 62vw, 20rem) * var(--mosaic-grow, 1)); gap: .3rem !important; padding: .3rem !important; }
-  .mosaic-cell { padding: .35rem !important; }
-  .mosaic-cell strong { font-size: clamp(.68rem, 2.8vw, 1rem) !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
-  .mosaic-cell .mosaic-count { display: none; }
+  .mosaic-layout { height: calc(clamp(18rem, 62vw, 22rem) * var(--mosaic-grow, 1)); gap: .3rem !important; padding: .3rem !important; }
+  .mosaic-cell { padding: .2rem !important; }
+  .mosaic-cell strong { font-size: .75rem !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
 }
-.mosaic-cell .mosaic-count { position: absolute !important; bottom: .35rem; inset-inline: 0; margin: 0 !important; }
+.mosaic-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; max-width: 100%; transition: transform .3s ease; }
+.mosaic-cell .mosaic-count { display: block; position: absolute !important; inset-inline: 0; top: calc(100% + .3rem); bottom: auto; margin: 0 !important; font-size: .6rem; line-height: 1.2; text-align: center; transform: translateY(5px); opacity: 0; white-space: nowrap; pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
+.mosaic-cell:hover .mosaic-count,
+.mosaic-cell:focus-visible .mosaic-count { opacity: 1; transform: none; }
+.mosaic-cell:hover .mosaic-inner,
+.mosaic-cell:focus-visible .mosaic-inner,
+.mosaic-cell:has(.mosaic-count:hover) .mosaic-inner { transform: translateY(-.35rem); }
+@container (max-height: 3.5rem) {
+  .mosaic-cell .mosaic-count { top: calc(100% + .16rem); font-size: .55rem; }
+  .mosaic-cell:hover .mosaic-inner,
+  .mosaic-cell:focus-visible .mosaic-inner { transform: translateY(-.2rem); }
+}
+@container (max-height: 3rem) {
+  .mosaic-cell strong { font-size: .7rem !important; line-height: 1.15 !important; }
+}
+/* Keep endpoint descriptions inside the track without moving its circles. */
+.story-timeline li:first-child .story-stop-copy { position: relative; left: -2.5rem; }
+.story-timeline li:last-child:not(:first-child) .story-stop-copy { position: relative; left: 2.5rem; }
 
 /* Dashboard responsiveness */
 .dashboard-main { overflow-x: hidden; }
@@ -11763,4 +11794,71 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 }
 .ask-editorial-panel.is-visible {
   transform: none;
+}
+
+/* مقال اليوم: حركة هادئة للبطاقة فقط، بدون حركة داخلية تسبب رعشة */
+.daily-story-copy,
+.daily-story-copy h3,
+.daily-story-media,
+.daily-story-media img {
+  animation: none !important;
+  will-change: auto !important;
+}
+.daily-story-media img { transform: scale(1.02) !important; }
+.daily-story-composition {
+  animation: dailyStoryCalmFloat 9s ease-in-out infinite !important;
+  will-change: transform !important;
+  backface-visibility: hidden;
+}
+@keyframes dailyStoryCalmFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -4px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-story-composition { animation: none !important; }
+}
+
+/* منع رعشة النص: البطاقة وحدها تتحرك كطبقة واحدة ثابتة الرسم، والمحتوى الداخلي لا يتحرك */
+.latest-article-card,
+.daily-story-composition,
+.mosaic-cell,
+.writer-point,
+.question-transform {
+  will-change: transform, translate;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.latest-article-card {
+  animation: cardCalmFloat 9s ease-in-out infinite;
+}
+.latest-card-2, .latest-card-4 { animation-delay: -4.5s; }
+
+@keyframes cardCalmFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -3px; }
+}
+
+.latest-card-media img,
+.latest-card-copy,
+.latest-card-copy *,
+.writer-info,
+.writer-point img,
+.mosaic-cell img,
+.daily-story-copy,
+.daily-story-copy *,
+.editorial-home .editorial-heading,
+.editorial-home .number-section__heading h2,
+.editorial-home .audio-section__heading h2,
+.editorial-home .ask-editorial-heading h2,
+.editorial-home .editorial-kicker,
+.editorial-home .section-hint {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .latest-article-card,
+  .mosaic-cell,
+  .writer-point,
+  .question-transform { animation: none !important; }
 }

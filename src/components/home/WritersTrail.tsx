@@ -16,6 +16,15 @@ const readableColor = (hex: string) => {
   return (r * 299 + g * 587 + b * 114) / 1000 > 155 ? "#173632" : "#ffffff";
 };
 
+const normalizeName = (value: string) =>
+  (value || "")
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const isEditorialTeam = (name: string) => normalizeName(name) === "فريق التحرير";
+
 export const WritersTrail = () => {
   const { ref, handlers } = useDragScroll<HTMLDivElement>();
   const navigate = useNavigate();
@@ -46,7 +55,7 @@ export const WritersTrail = () => {
           });
           return { ...profile, articles: ids.length, topics: topics.slice(0, 3) };
         })
-        .filter((writer) => writer.articles > 0)
+        .filter((writer) => writer.articles > 0 && !isEditorialTeam(writer.name))
         .sort((a, b) => b.articles - a.articles);
     },
   });
@@ -59,7 +68,7 @@ export const WritersTrail = () => {
         <Link to="/writers" className="editorial-link">كل الكُتّاب </Link></Reveal></div>
       <div className="writers-track-wrap"><EditorialCurve className="writers-curve" flip />
         <div ref={ref} {...handlers} dir="rtl" className="drag-scroll writers-track">
-          {writers.slice(1).map((writer, i) => (
+          {writers.map((writer, i) => (
             <Reveal key={writer.id} delay={i * 75} variant="scale" className={`writer-point writer-point-${i % 4}`}>
               <div
                 role="link"

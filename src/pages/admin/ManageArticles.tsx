@@ -108,15 +108,15 @@ const ManageArticles = () => {
     <div>
       <h1 className="text-3xl font-bold mb-8">إدارة المقالات</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {search(articles).map((article) => (
-          <Card key={article.id} className="p-6">
-            <div className="flex gap-4">
-              <img src={article.cover_image_url} alt={article.title} className="w-32 h-32 object-cover rounded" />
-              <div className="flex-1">
+          <Card key={article.id} className="min-w-0 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <img src={article.cover_image_url} alt={article.title} className="w-full h-40 sm:w-32 sm:h-32 shrink-0 object-cover rounded" />
+              <div className="flex-1 min-w-0">
                 <Link to={`/articles/${article.id}`} className="font-bold text-lg hover:text-primary">{article.title}</Link>
                 <p className="text-sm text-muted-foreground mt-1">{article.excerpt}</p>
-                <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-2">
                   <span>الكاتب: {article.profiles.name}</span>
                   {article.products && <span>المنتج: {article.products.name}</span>}
                   <span>
@@ -133,7 +133,7 @@ const ManageArticles = () => {
                   </div>
                 )}
 
-                <div className="flex gap-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-4">
                   <div className="relative group inline-block">
                     <Link to={`/admin/articles/preview/${article.id}`}>
                       <Button className="pl-1 hover:bg-gray-200 hover:text-black" variant="outline" size="sm"><Eye className="w-4 h-4 ml-2" /></Button>

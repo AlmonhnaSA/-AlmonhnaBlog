@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GalleryImageTrack } from "@/components/GalleryImageTrack";
@@ -21,13 +20,13 @@ export const ColumnArticleGallery = ({ articles, isQuote }: { articles: GalleryA
   return (
     <section className="column-gallery" aria-label={isQuote ? "مقتبسات العمود" : "صور العمود"}>
       <div className="column-gallery-stage">
-        <GalleryImageTrack images={articles.map((article) => ({ src: article.cover_image_url, alt: article.title, href: `/articles/${article.id}` }))} index={activeIndex} onSelect={setActiveIndex} />
-        <Link to={`/articles/${active.id}`} className="column-gallery-feature">
+        <GalleryImageTrack images={articles.map((article) => ({ src: article.cover_image_url, alt: article.title }))} index={activeIndex} onSelect={setActiveIndex} naturalSize />
+        <div className="column-gallery-feature">
           <div className="column-gallery-caption">
             <h2>{active.title}</h2>
             {active.excerpt && <p>{active.excerpt}</p>}
           </div>
-        </Link>
+        </div>
         {articles.length > 1 && <>
           <Button variant="outline" size="icon" className="column-gallery-arrow column-gallery-arrow-prev" aria-label="السابق" title="السابق" disabled={activeIndex === 0} onClick={() => move(-1)}><ChevronRight className="h-5 w-5" /></Button>
           <Button variant="outline" size="icon" className="column-gallery-arrow column-gallery-arrow-next" aria-label="التالي" title="التالي" disabled={activeIndex === articles.length - 1} onClick={() => move(1)}><ChevronLeft className="h-5 w-5" /></Button>
