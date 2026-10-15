@@ -11795,3 +11795,25 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 .ask-editorial-panel.is-visible {
   transform: none;
 }
+
+/* مقال اليوم: حركة هادئة للبطاقة فقط، بدون حركة داخلية تسبب رعشة */
+.daily-story-copy,
+.daily-story-copy h3,
+.daily-story-media,
+.daily-story-media img {
+  animation: none !important;
+  will-change: auto !important;
+}
+.daily-story-media img { transform: scale(1.02) !important; }
+.daily-story-composition {
+  animation: dailyStoryCalmFloat 9s ease-in-out infinite !important;
+  will-change: transform !important;
+  backface-visibility: hidden;
+}
+@keyframes dailyStoryCalmFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -4px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-story-composition { animation: none !important; }
+}
