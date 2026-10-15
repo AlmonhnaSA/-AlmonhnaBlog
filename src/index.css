@@ -4878,6 +4878,13 @@ margin-bottom:5rem;
       .25rem;
   }
 
+  .audio-all {
+    margin-top: 1rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+
   
   .number-story__figure {
     animation-duration: 5.5s;
