@@ -11817,3 +11817,48 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 @media (prefers-reduced-motion: reduce) {
   .daily-story-composition { animation: none !important; }
 }
+
+/* منع رعشة النص: البطاقة وحدها تتحرك كطبقة واحدة ثابتة الرسم، والمحتوى الداخلي لا يتحرك */
+.latest-article-card,
+.daily-story-composition,
+.mosaic-cell,
+.writer-point,
+.question-transform {
+  will-change: transform, translate;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.latest-article-card {
+  animation: cardCalmFloat 9s ease-in-out infinite;
+}
+.latest-card-2, .latest-card-4 { animation-delay: -4.5s; }
+
+@keyframes cardCalmFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -3px; }
+}
+
+.latest-card-media img,
+.latest-card-copy,
+.latest-card-copy *,
+.writer-info,
+.writer-point img,
+.mosaic-cell img,
+.daily-story-copy,
+.daily-story-copy *,
+.editorial-home .editorial-heading,
+.editorial-home .number-section__heading h2,
+.editorial-home .audio-section__heading h2,
+.editorial-home .ask-editorial-heading h2,
+.editorial-home .editorial-kicker,
+.editorial-home .section-hint {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .latest-article-card,
+  .mosaic-cell,
+  .writer-point,
+  .question-transform { animation: none !important; }
+}
