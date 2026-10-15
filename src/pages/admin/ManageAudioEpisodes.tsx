@@ -1,5 +1,5 @@
 import { useDashboardSearch } from "@/components/DashboardSearch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
-import { AudioUpload } from "@/components/AudioUpload";
+import { AudioUpload, discardR2Upload, isR2Upload } from "@/components/AudioUpload";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, Plus } from "lucide-react";
 
@@ -179,7 +179,7 @@ const ManageAudioEpisodes = () => {
             <Card key={t.id} className="overflow-hidden">
               <CardHeader
                 className="flex flex-row items-center justify-between gap-3 py-3 cursor-pointer"
-                onClick={() => setOpenId(open ? null : t.id)}
+                onClick={() => toggle(t.id)}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <CardTitle className="text-base truncate">{t.title}</CardTitle>
