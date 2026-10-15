@@ -11743,16 +11743,24 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
 .mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(19rem, 30vw, 24rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
-.mosaic-cell { min-height: 0 !important; padding: .25rem !important; justify-content: center !important; gap: .15rem; container-type: size; }
-.mosaic-cell strong { font-size: 1rem; font-weight: 400; line-height: 1.25 !important; flex-shrink: 0; }
+.mosaic-cell { min-height: 0 !important; padding: .25rem !important; justify-content: center !important; gap: 0; container-type: size; }
+.mosaic-cell strong { font-size: 1rem; font-weight: 400; line-height: 1.25 !important; flex-shrink: 0; transform: none; transition: transform .3s ease; }
 @media (max-width: 1023px) {
   .mosaic-layout { height: calc(clamp(18rem, 62vw, 22rem) * var(--mosaic-grow, 1)); gap: .3rem !important; padding: .3rem !important; }
   .mosaic-cell { padding: .2rem !important; }
   .mosaic-cell strong { font-size: .75rem !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
 }
-.mosaic-cell .mosaic-count { display: block; position: static !important; margin: 0 !important; font-size: .6rem; line-height: 1.2; flex-shrink: 0; transform: none; opacity: 0; white-space: nowrap; }
+.mosaic-cell .mosaic-count { display: block; position: absolute !important; inset-inline: 0; bottom: .35rem; margin: 0 !important; font-size: .6rem; line-height: 1.2; text-align: center; transform: translateY(5px); opacity: 0; white-space: nowrap; pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
 .mosaic-cell:hover .mosaic-count,
-.mosaic-cell:focus-visible .mosaic-count { opacity: 1; }
+.mosaic-cell:focus-visible .mosaic-count { opacity: 1; transform: none; }
+.mosaic-cell:hover strong,
+.mosaic-cell:focus-visible strong,
+.mosaic-cell:has(.mosaic-count:hover) strong { transform: translateY(-.4rem); }
+@media (max-width: 1023px) {
+  .mosaic-cell:hover strong,
+  .mosaic-cell:focus-visible strong { transform: translateY(-.3rem); }
+  .mosaic-cell .mosaic-count { bottom: .25rem; }
+}
 @container (max-height: 3rem) {
   .mosaic-cell strong { font-size: .7rem !important; line-height: 1.15 !important; }
 }
