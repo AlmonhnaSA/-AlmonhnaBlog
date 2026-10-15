@@ -1,5 +1,5 @@
 import { useDashboardSearch } from "@/components/DashboardSearch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
-import { AudioUpload } from "@/components/AudioUpload";
+import { AudioUpload, discardR2Upload, isR2Upload } from "@/components/AudioUpload";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, Plus } from "lucide-react";
 
@@ -31,11 +31,18 @@ const ManageAudioEpisodes = () => {
   const [newTitle, setNewTitle] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const { toast } = useToast();
+  // audio_url as stored in the database, per episode
+  const savedAudio = useRef<Record<string, string>>({});
+  const itemsRef = useRef<Episode[]>([]);
+  const tokenRef = useRef<string>("");
+  itemsRef.current = items;
+
+  const unsavedUploads = () =>
+    itemsRef.current.filter((t) => isR2Upload(t.audio_url) && t.audio_url !== savedAudio.current[t.id]);
 
   const load = async () => {
     const { data } = await supabase.from("audio_episodes").select("*").order("display_order");
-    setItems(
-      (data || []).map((e: any) => ({
+    const mapped = (data || []).map((e: any) => ({
         id: e.id,
         title: e.title || "",
         description: e.description || "",
@@ -46,13 +53,32 @@ const ManageAudioEpisodes = () => {
         episode_date: e.episode_date || "",
         is_featured: e.is_featured,
         is_active: e.is_active,
-      })),
-    );
+      }));
+    savedAudio.current = Object.fromEntries(mapped.map((e) => [e.id, e.audio_url]));
+    // Reloading must not drop an upload that is still waiting to be saved.
+    const pending = new Map(unsavedUploads().map((t) => [t.id, t.audio_url]));
+    setItems(mapped.map((e) => (pending.has(e.id) ? { ...e, audio_url: pending.get(e.id)! } : e)));
   };
 
   useEffect(() => {
     load();
+    supabase.auth.getSession().then(({ data }) => (tokenRef.current = data.session?.access_token || ""));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => (tokenRef.current = s?.access_token || ""));
+    // Safety net: remove unlinked uploads older than 24h.
+    supabase.functions.invoke("r2-audio-upload", { body: { action: "cleanup" } }).catch(() => {});
+    const onUnload = () =>
+      unsavedUploads().forEach((t) => discardR2Upload(t.audio_url, { keepalive: true, token: tokenRef.current }));
+    window.addEventListener("pagehide", onUnload);
+    return () => {
+      window.removeEventListener("pagehide", onUnload);
+      sub.subscription.unsubscribe();
+      unsavedUploads().forEach((t) => discardR2Upload(t.audio_url));
+    };
   }, []);
+
+  const toggle = (id: string) => {
+    setOpenId(openId === id ? null : id);
+  };
 
   const patch = (id: string, p: Partial<Episode>) =>
     setItems((prev) => prev.map((t) => (t.id === id ? { ...t, ...p } : t)));
@@ -84,6 +110,10 @@ const ManageAudioEpisodes = () => {
     if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }
+    if (!t.audio_url.trim()) {
+      toast({ title: "تنبيه", description: "الحلقة بدون ملف صوتي، لن تعمل في المشغّل", variant: "destructive" });
+    }
+    const previous = savedAudio.current[t.id];
     const { error } = await supabase
       .from("audio_episodes")
       .update({
@@ -102,13 +132,23 @@ const ManageAudioEpisodes = () => {
       toast({ title: "خطأ", description: "تعذّر الحفظ", variant: "destructive" });
       return;
     }
+    savedAudio.current[t.id] = t.audio_url;
+    // A replaced R2 upload is no longer linked; the server re-checks before deleting.
+    if (previous && previous !== t.audio_url) discardR2Upload(previous);
     toast({ title: "تم الحفظ", description: "تم تحديث الحلقة" });
     load();
   };
 
   const remove = async (t: Episode) => {
     if (!confirm(`حذف "${t.title}"؟`)) return;
-    await supabase.from("audio_episodes").delete().eq("id", t.id);
+    const { error } = await supabase.from("audio_episodes").delete().eq("id", t.id);
+    if (error) {
+      toast({ title: "خطأ", description: "تعذّر الحذف", variant: "destructive" });
+      return;
+    }
+    const urls = new Set([t.audio_url, savedAudio.current[t.id]].filter(Boolean));
+    delete savedAudio.current[t.id];
+    urls.forEach((u) => discardR2Upload(u));
     load();
   };
 
@@ -132,7 +172,7 @@ const ManageAudioEpisodes = () => {
             <Card key={t.id} className="overflow-hidden">
               <CardHeader
                 className="flex flex-row items-center justify-between gap-3 py-3 cursor-pointer"
-                onClick={() => setOpenId(open ? null : t.id)}
+                onClick={() => toggle(t.id)}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <CardTitle className="text-base truncate">{t.title}</CardTitle>

@@ -16,39 +16,66 @@ export const AudioUpload = ({ value, onChange, label = "ملف الصوت" }: Au
   const [useUrl, setUseUrl] = useState(true);
   const { toast } = useToast();
 
+  const [progress, setProgress] = useState(0);
+
+  const call = async (body: Record<string, unknown>) => {
+    const { data, error } = await supabase.functions.invoke("r2-audio-upload", { body });
+    if (error) {
+      const ctx: any = (error as any).context;
+      const details = ctx?.json ? await ctx.json().catch(() => null) : null;
+      throw new Error(details?.error || error.message);
+    }
+    return data;
+  };
+
+  const putWithProgress = (url: string, file: File, contentType: string) =>
+    new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("Content-Type", contentType);
+      xhr.upload.onprogress = (e) => e.lengthComputable && setProgress(Math.round((e.loaded / e.total) * 100));
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`upload_${xhr.status}`)));
+      xhr.onerror = () => reject(new Error("upload_network"));
+      xhr.send(file);
+    });
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("audio/")) {
+      toast({ title: "خطأ", description: "الرجاء اختيار ملف صوتي", variant: "destructive" });
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "خطأ", description: "حجم الملف يجب أن يكون أقل من 50 ميجابايت", variant: "destructive" });
+      return;
+    }
+    let key = "";
     try {
       setUploading(true);
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      if (!file.type.startsWith("audio/")) {
-        toast({ title: "خطأ", description: "الرجاء اختيار ملف صوتي", variant: "destructive" });
-        return;
+      setProgress(0);
+      const signed = await call({ action: "sign", contentType: file.type, size: file.size });
+      key = signed.key;
+      await putWithProgress(signed.uploadUrl, file, signed.contentType);
+      const verified = await call({ action: "verify", key });
+      // Replace an earlier, never-saved upload so it does not occupy storage.
+      const previous = value && value !== verified.publicUrl ? value : "";
+      onChange(verified.publicUrl);
+      if (previous.startsWith("https://audio.almonhna.sa/episodes/uploads/")) {
+        call({ action: "discard", key: previous.slice("https://audio.almonhna.sa/".length) }).catch(() => {});
       }
-      if (file.size > 50 * 1024 * 1024) {
-        toast({ title: "خطأ", description: "حجم الملف يجب أن يكون أقل من 50 ميجابايت", variant: "destructive" });
-        return;
-      }
-
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast({ title: "خطأ", description: "يجب تسجيل الدخول أولاً", variant: "destructive" });
-        return;
-      }
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `audio/${userData.user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from("images").upload(fileName, file);
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage.from("images").getPublicUrl(fileName);
-      onChange(publicUrl);
-      toast({ title: "تم الرفع بنجاح", description: "تم رفع الملف الصوتي" });
+      toast({ title: "تم الرفع بنجاح", description: "اضغطي «حفظ» لربط الملف بالحلقة" });
     } catch (error) {
       console.error("Error uploading audio:", error);
-      toast({ title: "خطأ", description: "فشل رفع الملف الصوتي", variant: "destructive" });
+      if (key) call({ action: "discard", key }).catch(() => {});
+      const msg = (error as Error).message;
+      const description =
+        msg === "forbidden" ? "الرفع متاح للإدارة فقط" :
+        msg === "too_large" ? "حجم الملف يجب أن يكون أقل من 50 ميجابايت" :
+        msg === "unsupported_type" ? "نوع الملف الصوتي غير مدعوم" :
+        "فشل رفع الملف الصوتي";
+      toast({ title: "خطأ", description, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -71,7 +98,7 @@ export const AudioUpload = ({ value, onChange, label = "ملف الصوت" }: Au
       ) : (
         <div className="space-y-2">
           <Input type="file" accept="audio/*" onChange={handleFileUpload} disabled={uploading} className="cursor-pointer h-9" />
-          {uploading && <p className="text-xs text-muted-foreground">جاري الرفع...</p>}
+          {uploading && <p className="text-xs text-muted-foreground">جاري الرفع... {progress}%</p>}
         </div>
       )}
 
@@ -81,3 +108,25 @@ export const AudioUpload = ({ value, onChange, label = "ملف الصوت" }: Au
 };
 
 export default AudioUpload;
+
+const R2_PUBLIC = "https://audio.almonhna.sa/";
+export const isR2Upload = (url?: string | null) => !!url && url.startsWith(R2_PUBLIC + "episodes/uploads/");
+
+/** Delete an unsaved R2 upload. The server refuses if any episode still links to it. */
+export const discardR2Upload = (url: string, opts?: { keepalive?: boolean; token?: string }) => {
+  if (!isR2Upload(url)) return Promise.resolve();
+  const key = url.slice(R2_PUBLIC.length);
+  if (opts?.keepalive && opts.token) {
+    return fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-audio-upload`, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${opts.token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ action: "discard", key }),
+    }).then(() => {}).catch(() => {});
+  }
+  return supabase.functions.invoke("r2-audio-upload", { body: { action: "discard", key } }).then(() => {}).catch(() => {});
+};
