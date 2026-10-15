@@ -46,7 +46,7 @@ export const WritersTrail = () => {
           });
           return { ...profile, articles: ids.length, topics: topics.slice(0, 3) };
         })
-        .filter((writer) => writer.articles > 0)
+        .filter((writer) => writer.articles > 0 && !isEditorialTeam(writer.name))
         .sort((a, b) => b.articles - a.articles);
     },
   });
