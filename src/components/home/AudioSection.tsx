@@ -270,6 +270,14 @@ useEffect(() => {
                     ref={audioRef}
                     src={resolveAudioUrl(current.audio_url)}
                     preload="none"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      const original = current.audio_url || "";
+                      if (original && el.src !== original) {
+                        el.src = original;
+                        el.play().catch(() => setPlaying(false));
+                      }
+                    }}
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onTimeUpdate={(e) => {

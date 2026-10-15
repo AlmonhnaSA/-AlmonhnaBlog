@@ -142,6 +142,14 @@ const AudioEpisodes = () => {
     // =========================================
 
     const audio = new Audio(resolveAudioUrl(episode.audio_url));
+    // إذا لم يكن الملف موجودًا في الخدمة الجديدة، نرجع للرابط الأصلي
+    audio.addEventListener("error", () => {
+      const original = episode.audio_url || "";
+      if (original && audio.src !== original) {
+        audio.src = original;
+        audio.play().catch(() => {});
+      }
+    });
 
     // تطبيق سرعة التشغيل الحالية
     audio.playbackRate = playbackRate;
