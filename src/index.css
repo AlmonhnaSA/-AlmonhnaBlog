@@ -4868,33 +4868,8 @@ margin-bottom:5rem;
     padding: 1rem;
   }
 
-  .audio-player {
-    min-height: 14rem;
-  }
-
-  .audio-controls {
-    gap: .5rem;
-    padding-top: 1.25rem;
-  }
-
   .audio-waveform {
     gap: .1rem;
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .audio-waveform span {
-    flex: 1 1 0;
-    min-width: 1px;
-  }
-
-  .audio-duration {
-    flex: none;
-  }
-
-  .audio-item__title {
-    overflow-wrap: normal;
   }
 
   .audio-item {
