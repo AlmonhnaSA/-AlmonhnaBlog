@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { TopBar } from "@/components/TopBar";
 import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
+import { optimizedSrc } from "@/lib/imageOptimizer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Linkedin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,7 +83,7 @@ const Writers = () => {
         {/* القسم الأول: الصورة + النصوص */}
         <div className="flex items-center gap-4">
           <Avatar className="h-24 w-24 flex-shrink-0">
-            <AvatarImage src={writer.photo_url || undefined} alt={writer.name} />
+            <AvatarImage src={writer.photo_url ? optimizedSrc(writer.photo_url, 256) : undefined} alt={writer.name} />
             <AvatarFallback className="text-2xl">
               <User className="h-12 w-12" />
             </AvatarFallback>
