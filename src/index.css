@@ -11754,6 +11754,8 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 .mosaic-cell .mosaic-count { position: static !important; margin: 0 !important; font-size: .6rem; line-height: 1.2; flex-shrink: 0; transform: none; }
 @container (max-height: 3rem) {
   .mosaic-cell strong { font-size: .75rem !important; }
+}
+@container (max-height: 2rem) {
   .mosaic-cell .mosaic-count { display: none; }
 }
 /* Keep endpoint descriptions inside the track without moving its circles. */
