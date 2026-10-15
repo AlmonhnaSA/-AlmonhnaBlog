@@ -49,4 +49,4 @@
 - [x] تقريب صفحات التفاصيل من المرجع: صورة طولية يمينًا وعمود قراءة أضيق مع الحفاظ على المحتوى والأدوات.
 - [x] عرض مقالات عمودي «الصورة» و«مقتبس» بصورة كبيرة وعنوان ونبذة وأسهم وصور مصغرة دون تغيير بقية الأعمدة.
 
-- [ ] Move new audio uploads to R2 via presigned PUT (admin-only, 50MB, save after upload, orphan cleanup, tests, usage monitoring) — waiting on R2 secrets
+- [ ] R2 audio uploads built and tested server-side — browser upload waits on R2 bucket CORS rule (user)
