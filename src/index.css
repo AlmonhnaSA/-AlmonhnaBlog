@@ -2394,9 +2394,9 @@ html:not(.dark)
   }
 
   .story-stop-copy {
-    width: 6rem;
-margin-left: 15px;
-    font-size: 1.3rem;
+    width: 9rem;
+    margin-inline: auto;
+    font-size: .98rem;
   }
 
   .story-stop-copy small {
@@ -11743,15 +11743,24 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
 .mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(17rem, 30vw, 22rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
-.mosaic-cell { min-height: 0 !important; padding: .4rem !important; justify-content: center !important; }
-.mosaic-cell strong { line-height: 1.25 !important; }
+.mosaic-cell { min-height: 0 !important; padding: .25rem !important; justify-content: center !important; gap: .15rem; container-type: size; }
+.mosaic-cell strong { font-size: 1rem; font-weight: 400; line-height: 1.25 !important; flex-shrink: 0; }
 @media (max-width: 1023px) {
   .mosaic-layout { height: calc(clamp(16rem, 62vw, 20rem) * var(--mosaic-grow, 1)); gap: .3rem !important; padding: .3rem !important; }
   .mosaic-cell { padding: .35rem !important; }
-  .mosaic-cell strong { font-size: clamp(.68rem, 2.8vw, 1rem) !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
+  .mosaic-cell strong { font-size: .75rem !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
   .mosaic-cell .mosaic-count { display: none; }
 }
-.mosaic-cell .mosaic-count { position: absolute !important; bottom: .35rem; inset-inline: 0; margin: 0 !important; }
+.mosaic-cell .mosaic-count { position: static !important; margin: 0 !important; font-size: .6rem; line-height: 1.2; flex-shrink: 0; transform: none; }
+@container (max-height: 3rem) {
+  .mosaic-cell strong { font-size: .75rem !important; }
+}
+@container (max-height: 2rem) {
+  .mosaic-cell .mosaic-count { display: none; }
+}
+/* Keep endpoint descriptions inside the track without moving its circles. */
+.story-timeline li:first-child .story-stop-copy { position: relative; left: -2.5rem; }
+.story-timeline li:last-child:not(:first-child) .story-stop-copy { position: relative; left: 2.5rem; }
 
 /* Dashboard responsiveness */
 .dashboard-main { overflow-x: hidden; }
