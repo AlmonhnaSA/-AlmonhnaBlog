@@ -21,7 +21,7 @@ export const ColumnArticleGallery = ({ articles, isQuote }: { articles: GalleryA
   return (
     <section className="column-gallery" aria-label={isQuote ? "مقتبسات العمود" : "صور العمود"}>
       <div className="column-gallery-stage">
-        <GalleryImageTrack images={articles.map((article) => ({ src: article.cover_image_url, alt: article.title, href: `/articles/${article.id}` }))} index={activeIndex} onSelect={setActiveIndex} />
+        <GalleryImageTrack images={articles.map((article) => ({ src: article.cover_image_url, alt: article.title, href: `/articles/${article.id}` }))} index={activeIndex} onSelect={setActiveIndex} naturalSize />
         <Link to={`/articles/${active.id}`} className="column-gallery-feature">
           <div className="column-gallery-caption">
             <h2>{active.title}</h2>

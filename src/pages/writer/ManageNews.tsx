@@ -114,16 +114,16 @@ export const ManageNews = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {search(news).map((newsItem) => (
           <Card key={newsItem.id}>
             <CardHeader>
-              <div className="flex justify-between items-start gap-4">
-                <img src={newsItem.cover_image_url} alt={newsItem.title} className="w-32 h-24 object-cover rounded-lg" />
-                <div className="flex-1">
+              <div className="flex flex-wrap items-start gap-4">
+                <img src={newsItem.cover_image_url} alt={newsItem.title} className="w-full h-40 sm:w-32 sm:h-24 shrink-0 object-cover rounded-lg" />
+                <div className="flex-1 min-w-0 basis-full sm:basis-0">
                   <CardTitle className="text-xl mb-2">{newsItem.title}</CardTitle>
                   <p className="text-sm text-muted-foreground line-clamp-2">{newsItem.excerpt}</p>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
                     {getStatusBadge(newsItem.status)}
                     <span className="text-xs text-muted-foreground">
                       {new Date(newsItem.created_at).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" })}
@@ -132,14 +132,14 @@ export const ManageNews = () => {
 
                   {newsItem.status === "rejected" && newsItem.rejection_reason && (
                     <button
-                      onClick={() => setRejectionPopup({ open: true, reason: newsItem.rejection_reason! })}
+                      onClick={() => setRejectionPopup({ open: true, reason: newsItem.rejection_reason || "" })}
                       className="mt-2 text-sm text-red-600 hover:text-red-800 underline cursor-pointer"
                     >
                       عرض سبب الرفض
                     </button>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap w-full justify-end gap-2">
                   <Link to={`/writer/news/preview/${newsItem.id}`}>
                     <Button variant="outline" size="sm"><Eye className="w-4 h-4" /></Button>
                   </Link>

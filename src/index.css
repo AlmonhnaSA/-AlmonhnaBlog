@@ -11390,7 +11390,7 @@ span {
 .gallery-swipe-track { display: flex; height: 100%; }
 .gallery-swipe-slide { border-radius:0rem; flex: 0 0 100%; min-width: 0; height: 100%; display: block; }
 .gallery-swipe-slide img { user-select: none; }
-.gallery-swipe-natural { border: 2px solid ; border-radius: 0rem; background: transparent; }
+.gallery-swipe-natural { border: 2px solid hsl(var(--border)); border-radius: 0rem; background: transparent; }
 .gallery-swipe-natural .gallery-swipe-slide img {  border-radius: 0rem; object-fit: contain; }
 .column-gallery-caption { padding-top: 1.25rem; min-height: 6.5rem; }
 .column-gallery-caption h2 { font-size: 1.35rem; line-height: 1.6; color: hsl(var(--foreground)); }
@@ -11630,6 +11630,14 @@ html.dark body:not(:has(.editorial-home)),
   background-color: #f7f3e8d9;
     padding: 3rem;
     border-radius: 3rem;
+}
+
+/* Artwork carries text: preserve its complete intrinsic composition. */
+.column-gallery .gallery-swipe-natural .gallery-swipe-slide {
+  border-radius: 0;
+}
+.column-gallery .gallery-swipe-natural .gallery-swipe-slide img {
+  object-fit: contain;
 }
 
 /* CSS viewport width, not zoom detection: preserve normal desktop shells. */
