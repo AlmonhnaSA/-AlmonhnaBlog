@@ -1,3 +1,5 @@
+import { seekBarHandlers } from "@/lib/audioSeek";
+import { resolveAudioUrl } from "@/lib/audioUrl";
 import { SearchInput } from "@/components/DashboardSearch";
 import { searchItems } from "@/lib/searchItems";
 import { useEffect, useRef, useState } from "react";
@@ -38,6 +40,7 @@ const AudioEpisodes = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioEpisodeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase
@@ -138,12 +141,13 @@ const AudioEpisodes = () => {
     // إنشاء Audio جديد
     // =========================================
 
-    const audio = new Audio(episode.audio_url);
+    const audio = new Audio(resolveAudioUrl(episode.audio_url));
 
     // تطبيق سرعة التشغيل الحالية
     audio.playbackRate = playbackRate;
 
     audioRef.current = audio;
+    audioEpisodeIdRef.current = episode.id;
 
     setPlayingId(episode.id);
     setProgress(0);
@@ -447,7 +451,19 @@ const AudioEpisodes = () => {
                             Progress
                         ================================= */}
 
-                        <div className="audio-episode-progress">
+                        <div
+                          className="audio-episode-progress"
+                          role="slider"
+                          tabIndex={0}
+                          aria-label="موضع التشغيل"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={isPlaying ? Math.round(progress) : 0}
+                          style={{ cursor: "pointer", touchAction: "none" }}
+                          {...seekBarHandlers(() =>
+                            audioEpisodeIdRef.current === episode.id ? audioRef.current : null
+                          )}
+                        >
 
                           <div className="audio-episode-progress-track">
 

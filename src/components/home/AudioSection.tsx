@@ -1,3 +1,4 @@
+import { seekBarHandlers } from "@/lib/audioSeek";
 import {
   useEffect,
   useMemo,
@@ -7,6 +8,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import Reveal from "@/components/motion/Reveal";
+import { resolveAudioUrl } from "@/lib/audioUrl";
 import {
   Headphones,
   Pause,
@@ -234,7 +236,14 @@ useEffect(() => {
                       className={`audio-waveform ${
                         playing ? "is-playing" : ""
                       }`}
-                      aria-hidden="true"
+                      role="slider"
+                      tabIndex={0}
+                      aria-label="موضع التشغيل"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(progress)}
+                      style={{ cursor: "pointer", touchAction: "none" }}
+                      {...seekBarHandlers(() => audioRef.current)}
                     >
                       {Array.from(
                         { length: 30 },
@@ -259,7 +268,8 @@ useEffect(() => {
 
                   <audio
                     ref={audioRef}
-                    src={current.audio_url}
+                    src={resolveAudioUrl(current.audio_url)}
+                    preload="none"
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onTimeUpdate={(e) => {
