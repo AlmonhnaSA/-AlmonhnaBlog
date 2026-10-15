@@ -14,7 +14,7 @@
 - Keep timeline selection in scoped RTL text tabs using the shared Button, with a gold active underline; styling changes must preserve the existing selected timeline and content rendering.
 - Render image timelines at full container width with intrinsic height and no image hover transform, so every image stays fully visible independently of viewport height.
 - Visual-column galleries use the shared track's intrinsic image ratio and contain fit, because quote artwork includes text that must never be cropped at any viewport width.
-- Mosaic labels and counts occupy separate normal-flow rows, with compact-cell container rules; absolute counts overlapped names in short tiles.
+- Mosaic labels and counts occupy separate normal-flow rows, with minimum grid-track heights that accommodate both; do not solve short tiles by hiding counts.
 - Management article/service cards stack at narrow widths and reserve two columns for wide content areas; action rows wrap independently to keep titles and controls readable alongside dashboard navigation.
 
 - Reserve vertical motion clearance inside animated horizontal tracks and use unclipped reveal transitions; scroll containers must not cut off floating cards, while intentional image-frame zoom and decorative cropping stay scoped.
