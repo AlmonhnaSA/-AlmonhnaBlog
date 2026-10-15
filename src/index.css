@@ -11750,16 +11750,17 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
   .mosaic-cell { padding: .2rem !important; }
   .mosaic-cell strong { font-size: .75rem !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
 }
-.mosaic-cell .mosaic-count { display: block; position: absolute !important; inset-inline: 0; top: calc(50% + .55rem); bottom: auto; margin: 0 !important; font-size: .6rem; line-height: 1.2; text-align: center; transform: translateY(5px); opacity: 0; white-space: nowrap; pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
+.mosaic-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; max-width: 100%; transition: transform .3s ease; }
+.mosaic-cell .mosaic-count { display: block; position: absolute !important; inset-inline: 0; top: calc(100% + .3rem); bottom: auto; margin: 0 !important; font-size: .6rem; line-height: 1.2; text-align: center; transform: translateY(5px); opacity: 0; white-space: nowrap; pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
 .mosaic-cell:hover .mosaic-count,
 .mosaic-cell:focus-visible .mosaic-count { opacity: 1; transform: none; }
-.mosaic-cell:hover strong,
-.mosaic-cell:focus-visible strong,
-.mosaic-cell:has(.mosaic-count:hover) strong { transform: translateY(-.4rem); }
-@media (max-width: 1023px) {
-  .mosaic-cell:hover strong,
-  .mosaic-cell:focus-visible strong { transform: translateY(-.3rem); }
-  .mosaic-cell .mosaic-count { top: calc(50% + .5rem); bottom: auto; }
+.mosaic-cell:hover .mosaic-inner,
+.mosaic-cell:focus-visible .mosaic-inner,
+.mosaic-cell:has(.mosaic-count:hover) .mosaic-inner { transform: translateY(-.35rem); }
+@container (max-height: 3.5rem) {
+  .mosaic-cell .mosaic-count { top: calc(100% + .16rem); font-size: .55rem; }
+  .mosaic-cell:hover .mosaic-inner,
+  .mosaic-cell:focus-visible .mosaic-inner { transform: translateY(-.2rem); }
 }
 @container (max-height: 3rem) {
   .mosaic-cell strong { font-size: .7rem !important; line-height: 1.15 !important; }
