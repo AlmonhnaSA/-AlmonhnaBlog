@@ -110,7 +110,7 @@ const AudioEpisodes = () => {
     // =========================================
 
     if (
-      playingId === episode.id &&
+      audioEpisodeIdRef.current === episode.id &&
       currentAudio
     ) {
       if (currentAudio.paused) {
