@@ -55,7 +55,9 @@ const ManageAudioEpisodes = () => {
         is_active: e.is_active,
       }));
     savedAudio.current = Object.fromEntries(mapped.map((e) => [e.id, e.audio_url]));
-    setItems(mapped);
+    // Reloading must not drop an upload that is still waiting to be saved.
+    const pending = new Map(unsavedUploads().map((t) => [t.id, t.audio_url]));
+    setItems(mapped.map((e) => (pending.has(e.id) ? { ...e, audio_url: pending.get(e.id)! } : e)));
   };
 
   useEffect(() => {
@@ -74,18 +76,7 @@ const ManageAudioEpisodes = () => {
     };
   }, []);
 
-  /** Closing an episode without saving cancels its pending upload. */
-  const cancelPending = (id: string | null) => {
-    if (!id) return;
-    const t = itemsRef.current.find((x) => x.id === id);
-    if (t && isR2Upload(t.audio_url) && t.audio_url !== savedAudio.current[id]) {
-      discardR2Upload(t.audio_url);
-      patch(id, { audio_url: savedAudio.current[id] || "" });
-    }
-  };
-
   const toggle = (id: string) => {
-    cancelPending(openId);
     setOpenId(openId === id ? null : id);
   };
 
@@ -111,7 +102,6 @@ const ManageAudioEpisodes = () => {
       return;
     }
     setNewTitle("");
-    cancelPending(openId);
     setOpenId(data?.id || null);
     load();
   };
@@ -119,6 +109,9 @@ const ManageAudioEpisodes = () => {
   const save = async (t: Episode) => {
     if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
+    }
+    if (!t.audio_url.trim()) {
+      toast({ title: "تنبيه", description: "الحلقة بدون ملف صوتي، لن تعمل في المشغّل", variant: "destructive" });
     }
     const previous = savedAudio.current[t.id];
     const { error } = await supabase
