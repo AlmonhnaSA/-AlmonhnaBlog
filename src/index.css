@@ -11742,17 +11742,19 @@ button, .badge, [class*="chip"], [class*="tag"] { word-break: keep-all; }
 }
 
 /* Mosaic keeps one composition (large + small boxes) on every screen */
-.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(5.5rem, 1fr)) !important; grid-auto-rows: 0 !important; height: max(calc(clamp(17rem, 30vw, 22rem) * var(--mosaic-grow, 1)), calc(var(--mosaic-rows, 3) * 6rem + 2.5rem)); overflow: hidden !important; }
+.mosaic-layout { grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 1fr)) !important; grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(0, 1fr)) !important; grid-auto-rows: 0 !important; height: calc(clamp(19rem, 30vw, 24rem) * var(--mosaic-grow, 1)); overflow: hidden !important; }
 .mosaic-cell { min-height: 0 !important; padding: .25rem !important; justify-content: center !important; gap: .15rem; container-type: size; }
 .mosaic-cell strong { font-size: 1rem; font-weight: 400; line-height: 1.25 !important; flex-shrink: 0; }
 @media (max-width: 1023px) {
-  .mosaic-layout { grid-template-rows: repeat(var(--mosaic-rows, 3), minmax(4.75rem, 1fr)) !important; height: max(calc(clamp(16rem, 62vw, 20rem) * var(--mosaic-grow, 1)), calc(var(--mosaic-rows, 3) * 5.1rem + .6rem)); gap: .3rem !important; padding: .3rem !important; }
-  .mosaic-cell { padding: .35rem !important; }
+  .mosaic-layout { height: calc(clamp(18rem, 62vw, 22rem) * var(--mosaic-grow, 1)); gap: .3rem !important; padding: .3rem !important; }
+  .mosaic-cell { padding: .2rem !important; }
   .mosaic-cell strong { font-size: .75rem !important; line-height: 1.3; overflow-wrap: normal !important; word-break: keep-all; }
 }
-.mosaic-cell .mosaic-count { display: block; position: static !important; margin: 0 !important; font-size: .65rem; line-height: 1.4; flex-shrink: 0; transform: none; opacity: 1; white-space: nowrap; }
+.mosaic-cell .mosaic-count { display: block; position: static !important; margin: 0 !important; font-size: .6rem; line-height: 1.2; flex-shrink: 0; transform: none; opacity: 0; white-space: nowrap; }
+.mosaic-cell:hover .mosaic-count,
+.mosaic-cell:focus-visible .mosaic-count { opacity: 1; }
 @container (max-height: 3rem) {
-  .mosaic-cell strong { font-size: .75rem !important; }
+  .mosaic-cell strong { font-size: .7rem !important; line-height: 1.15 !important; }
 }
 /* Keep endpoint descriptions inside the track without moving its circles. */
 .story-timeline li:first-child .story-stop-copy { position: relative; left: -2.5rem; }
