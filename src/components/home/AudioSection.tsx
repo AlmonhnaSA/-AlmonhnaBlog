@@ -8,7 +8,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import Reveal from "@/components/motion/Reveal";
-import { resolveAudioUrl } from "@/lib/audioUrl";
+import { resolveAudioUrl, switchToOriginalOnce, isFallbackInterruption } from "@/lib/audioUrl";
 import {
   Headphones,
   Pause,
@@ -43,6 +43,13 @@ const AudioSection = () => {
   const [playbackRate, setPlaybackRate] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wantPlayRef = useRef(false);
+  const safePlay = (el: HTMLAudioElement) => {
+    wantPlayRef.current = true;
+    return el.play().then(() => setPlaying(true)).catch(() => {
+      if (!isFallbackInterruption(el)) { wantPlayRef.current = false; setPlaying(false); }
+    });
+  };
 
   useEffect(() => {
     supabase
@@ -77,6 +84,7 @@ const AudioSection = () => {
   useEffect(() => {
   setProgress(0);
   setPlaying(false);
+  wantPlayRef.current = false;
 }, [currentId]);
 
 useEffect(() => {
@@ -94,9 +102,7 @@ useEffect(() => {
 
         if (!el) return;
 
-        el.play()
-          .then(() => setPlaying(true))
-          .catch(() => setPlaying(false));
+        safePlay(el);
       }, 60);
 
       return;
@@ -107,13 +113,9 @@ useEffect(() => {
     if (!el) return;
 
     if (el.paused) {
-      try {
-        await el.play();
-        setPlaying(true);
-      } catch {
-        setPlaying(false);
-      }
+      await safePlay(el);
     } else {
+      wantPlayRef.current = false;
       el.pause();
       setPlaying(false);
     }
@@ -272,10 +274,8 @@ useEffect(() => {
                     preload="none"
                     onError={(e) => {
                       const el = e.currentTarget;
-                      const original = current.audio_url || "";
-                      if (original && el.src !== original) {
-                        el.src = original;
-                        el.play().catch(() => setPlaying(false));
+                      if (!switchToOriginalOnce(el, current.audio_url, wantPlayRef.current)) {
+                        setPlaying(false);
                       }
                     }}
                     onPlay={() => setPlaying(true)}

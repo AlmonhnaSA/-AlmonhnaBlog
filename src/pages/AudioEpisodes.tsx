@@ -1,5 +1,5 @@
 import { seekBarHandlers } from "@/lib/audioSeek";
-import { resolveAudioUrl } from "@/lib/audioUrl";
+import { resolveAudioUrl, switchToOriginalOnce, isFallbackInterruption } from "@/lib/audioUrl";
 import { SearchInput } from "@/components/DashboardSearch";
 import { searchItems } from "@/lib/searchItems";
 import { useEffect, useRef, useState } from "react";
@@ -110,7 +110,7 @@ const AudioEpisodes = () => {
     // =========================================
 
     if (
-      playingId === episode.id &&
+      audioEpisodeIdRef.current === episode.id &&
       currentAudio
     ) {
       if (currentAudio.paused) {
@@ -121,7 +121,7 @@ const AudioEpisodes = () => {
 
           setPlayingId(episode.id);
         } catch {
-          setPlayingId(null);
+          if (!isFallbackInterruption(currentAudio)) setPlayingId(null);
         }
       } else {
         currentAudio.pause();
@@ -143,13 +143,6 @@ const AudioEpisodes = () => {
 
     const audio = new Audio(resolveAudioUrl(episode.audio_url));
     // إذا لم يكن الملف موجودًا في الخدمة الجديدة، نرجع للرابط الأصلي
-    audio.addEventListener("error", () => {
-      const original = episode.audio_url || "";
-      if (original && audio.src !== original) {
-        audio.src = original;
-        audio.play().catch(() => {});
-      }
-    });
 
     // تطبيق سرعة التشغيل الحالية
     audio.playbackRate = playbackRate;
@@ -189,6 +182,8 @@ const AudioEpisodes = () => {
     // =========================================
 
     audio.onerror = () => {
+      if (switchToOriginalOnce(audio, episode.audio_url, true)) return;
+      if (audioRef.current !== audio) return;
       setPlayingId(null);
       setProgress(0);
     };
@@ -200,6 +195,7 @@ const AudioEpisodes = () => {
     try {
       await audio.play();
     } catch {
+      if (isFallbackInterruption(audio) || audioRef.current !== audio) return;
       setPlayingId(null);
       setProgress(0);
     }
