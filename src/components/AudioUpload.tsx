@@ -108,3 +108,25 @@ export const AudioUpload = ({ value, onChange, label = "ملف الصوت" }: Au
 };
 
 export default AudioUpload;
+
+const R2_PUBLIC = "https://audio.almonhna.sa/";
+export const isR2Upload = (url?: string | null) => !!url && url.startsWith(R2_PUBLIC + "episodes/uploads/");
+
+/** Delete an unsaved R2 upload. The server refuses if any episode still links to it. */
+export const discardR2Upload = (url: string, opts?: { keepalive?: boolean; token?: string }) => {
+  if (!isR2Upload(url)) return Promise.resolve();
+  const key = url.slice(R2_PUBLIC.length);
+  if (opts?.keepalive && opts.token) {
+    return fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-audio-upload`, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${opts.token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ action: "discard", key }),
+    }).then(() => {}).catch(() => {});
+  }
+  return supabase.functions.invoke("r2-audio-upload", { body: { action: "discard", key } }).then(() => {}).catch(() => {});
+};

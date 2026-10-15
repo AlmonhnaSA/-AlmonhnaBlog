@@ -31,11 +31,18 @@ const ManageAudioEpisodes = () => {
   const [newTitle, setNewTitle] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const { toast } = useToast();
+  // audio_url as stored in the database, per episode
+  const savedAudio = useRef<Record<string, string>>({});
+  const itemsRef = useRef<Episode[]>([]);
+  const tokenRef = useRef<string>("");
+  itemsRef.current = items;
+
+  const unsavedUploads = () =>
+    itemsRef.current.filter((t) => isR2Upload(t.audio_url) && t.audio_url !== savedAudio.current[t.id]);
 
   const load = async () => {
     const { data } = await supabase.from("audio_episodes").select("*").order("display_order");
-    setItems(
-      (data || []).map((e: any) => ({
+    const mapped = (data || []).map((e: any) => ({
         id: e.id,
         title: e.title || "",
         description: e.description || "",
@@ -46,13 +53,41 @@ const ManageAudioEpisodes = () => {
         episode_date: e.episode_date || "",
         is_featured: e.is_featured,
         is_active: e.is_active,
-      })),
-    );
+      }));
+    savedAudio.current = Object.fromEntries(mapped.map((e) => [e.id, e.audio_url]));
+    setItems(mapped);
   };
 
   useEffect(() => {
     load();
+    supabase.auth.getSession().then(({ data }) => (tokenRef.current = data.session?.access_token || ""));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => (tokenRef.current = s?.access_token || ""));
+    // Safety net: remove unlinked uploads older than 24h.
+    supabase.functions.invoke("r2-audio-upload", { body: { action: "cleanup" } }).catch(() => {});
+    const onUnload = () =>
+      unsavedUploads().forEach((t) => discardR2Upload(t.audio_url, { keepalive: true, token: tokenRef.current }));
+    window.addEventListener("pagehide", onUnload);
+    return () => {
+      window.removeEventListener("pagehide", onUnload);
+      sub.subscription.unsubscribe();
+      unsavedUploads().forEach((t) => discardR2Upload(t.audio_url));
+    };
   }, []);
+
+  /** Closing an episode without saving cancels its pending upload. */
+  const cancelPending = (id: string | null) => {
+    if (!id) return;
+    const t = itemsRef.current.find((x) => x.id === id);
+    if (t && isR2Upload(t.audio_url) && t.audio_url !== savedAudio.current[id]) {
+      discardR2Upload(t.audio_url);
+      patch(id, { audio_url: savedAudio.current[id] || "" });
+    }
+  };
+
+  const toggle = (id: string) => {
+    cancelPending(openId);
+    setOpenId(openId === id ? null : id);
+  };
 
   const patch = (id: string, p: Partial<Episode>) =>
     setItems((prev) => prev.map((t) => (t.id === id ? { ...t, ...p } : t)));
@@ -76,6 +111,7 @@ const ManageAudioEpisodes = () => {
       return;
     }
     setNewTitle("");
+    cancelPending(openId);
     setOpenId(data?.id || null);
     load();
   };
@@ -84,6 +120,7 @@ const ManageAudioEpisodes = () => {
     if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }
+    const previous = savedAudio.current[t.id];
     const { error } = await supabase
       .from("audio_episodes")
       .update({
@@ -102,13 +139,23 @@ const ManageAudioEpisodes = () => {
       toast({ title: "خطأ", description: "تعذّر الحفظ", variant: "destructive" });
       return;
     }
+    savedAudio.current[t.id] = t.audio_url;
+    // A replaced R2 upload is no longer linked; the server re-checks before deleting.
+    if (previous && previous !== t.audio_url) discardR2Upload(previous);
     toast({ title: "تم الحفظ", description: "تم تحديث الحلقة" });
     load();
   };
 
   const remove = async (t: Episode) => {
     if (!confirm(`حذف "${t.title}"؟`)) return;
-    await supabase.from("audio_episodes").delete().eq("id", t.id);
+    const { error } = await supabase.from("audio_episodes").delete().eq("id", t.id);
+    if (error) {
+      toast({ title: "خطأ", description: "تعذّر الحذف", variant: "destructive" });
+      return;
+    }
+    const urls = new Set([t.audio_url, savedAudio.current[t.id]].filter(Boolean));
+    delete savedAudio.current[t.id];
+    urls.forEach((u) => discardR2Upload(u));
     load();
   };
 
