@@ -1,10 +1,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateMediaUpload, UUID } from "../_shared/mediaValidation.ts";
+import { drainMediaCleanup, PHYSICAL_DELETE_ENABLED, type DeletionClaim } from "../_shared/mediaCleanup.ts";
+import { cloudImageProvider } from "./storageProvider.ts";
 
 // STAGED: no deploy under the current approval. Deletion cannot be enabled
 // with a frontend flag, request, or secret. Requires separate reviewed release.
-const PHYSICAL_DELETE_ENABLED = false;
 const tables = new Set(["articles", "news", "products", "store_products", "profiles", "timelines", "audio_episodes"]);
 const respond = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" } });
 Deno.serve(async req => {
@@ -29,6 +30,20 @@ Deno.serve(async req => {
       const { error } = await admin.from("media_audit").insert({ actor_id: user.id, operation, outcome, asset_id: id });
       if (error) throw new Error("audit_unavailable");
     };
+    const cleanup = async (receipt: string) => {
+      const finish = async (claim: DeletionClaim, success: boolean) => {
+        const { error } = await admin.rpc("media_cleanup_finish", { p_asset: claim.asset_id, p_token: claim.token, p_success: success });
+        if (error) throw new Error("cleanup_reconcile_failed");
+      };
+      return drainMediaCleanup(receipt, {
+        async claim(token) {
+          const { data, error } = await admin.rpc("media_cleanup_claim", { p_receipt: token, p_host: new URL(base).hostname });
+          if (error) throw new Error("cleanup_claim_failed");
+          return data as DeletionClaim | null;
+        },
+        finish: claim => finish(claim, true), failure: claim => finish(claim, false),
+      }, { supabase: cloudImageProvider(admin) });
+    };
     if (body.action === "capabilities") {
       const { error } = await admin.from("media_assets").select("id").limit(1);
       return error ? respond({ error: "schema_not_ready" }, 503) : respond({ version: 1, mutations: Deno.env.get("MEDIA_MUTATIONS_VALIDATED") === "true", physicalDelete: PHYSICAL_DELETE_ENABLED, dryRun: true });
@@ -51,12 +66,13 @@ Deno.serve(async req => {
       if (error || !asset || asset.state !== "uploading") return respond({ error: "unknown_upload" }, 409);
       const { data: info, error: infoError } = await admin.storage.from(asset.bucket).info(asset.object_key);
       if (infoError || Number(info?.size) !== Number(asset.bytes) || info?.contentType !== asset.mime) return respond({ error: "verification_failed" }, 409);
-      const { error: updateError } = await admin.from("media_assets").update({ state: "ready" }).eq("id", asset.id).eq("state", "uploading");
-      if (updateError) return respond({ error: "verification_failed" }, 409);
+      const { data: verified, error: updateError } = await admin.from("media_assets").update({ state: "ready" }).eq("id", asset.id).eq("state", "uploading").select("id").single();
+      if (updateError || !verified) return respond({ error: "verification_failed" }, 409);
       await audit("upload_verified", "ready", asset.id);
       return respond({ url: admin.storage.from(asset.bucket).getPublicUrl(asset.object_key).data.publicUrl });
     }
     if (body.action === "save" || body.action === "delete") {
+      if (Deno.env.get("MEDIA_MUTATIONS_VALIDATED") !== "true") return respond({ error: "mutations_not_approved" }, 503);
       if (!tables.has(body.table) || (body.id && !UUID.test(body.id))) return respond({ error: "invalid_record" }, 400);
       // An invoker RPC—not the service key—performs mutations under existing RLS.
       const name = body.action === "save" ? "media_save" : "media_delete";
@@ -65,13 +81,28 @@ Deno.serve(async req => {
       const { data, error } = await caller.rpc(name, args);
       if (error || !data) { await audit(`${body.action}:${body.table}`, "rejected"); return respond({ error: "save_delete_conflict_or_forbidden" }, 409); }
       await audit(`${body.action}:${body.table}`, "committed");
-      if (body.action === "delete") return respond(data);
-      const { data: readback, error: readError } = await caller.from(body.table).select("*").eq("id", data.id).single();
-      if (readError || !readback) return respond({ error: "readback_failed_old_files_retained" }, 409);
-      return respond({ row: readback, cleanup: "preview_only" });
+      let readback: Record<string, unknown> | null = null;
+      if (body.action === "save") {
+        const result = await caller.from(body.table).select("*").eq("id", data.id).single();
+        readback = result.data;
+        if (result.error || !readback) return respond({ error: "readback_failed_old_files_retained" }, 409);
+      }
+      // Only a committed, verified operation can issue cleanup authority.
+      // Cleanup failures never make a saved record appear to have failed.
+      let cleanupResult: unknown = { pending: true, disabled: !PHYSICAL_DELETE_ENABLED };
+      try {
+        await audit(`readback:${body.table}`, String(data.cleanup_txid));
+        const { data: receipt, error: receiptError } = await admin.rpc("media_cleanup_receipt", { p_txid: String(data.cleanup_txid), p_actor: user.id });
+        if (!receiptError && typeof receipt === "string") cleanupResult = await cleanup(receipt);
+      } catch { /* Durable jobs retained; no unsafe rollback or second save. */ }
+      return respond(body.action === "delete" ? { ...data, cleanup: cleanupResult } : { row: readback, cleanup: cleanupResult });
     }
     if (body.action === "cleanup" || body.action === "preview") {
       if (!role) return respond({ error: "forbidden" }, 403);
+      if (PHYSICAL_DELETE_ENABLED && body.action === "cleanup") {
+        if (!UUID.test(body.receipt || "")) return respond({ error: "invalid_receipt" }, 400);
+        return respond(await cleanup(body.receipt));
+      }
       await audit("cleanup", "blocked_preview_only");
       return respond({ dryRun: true, physicalDelete: false, blocked: ["independent_inventory_and_backfill_required", "encoded_reference_fencing_review_required", "external_protection_review_required", "separate_deletion_approval_required"], deleted: 0 });
     }
