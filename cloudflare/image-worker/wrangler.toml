@@ -1,0 +1,9 @@
+name = "almonhna-images"
+main = "src/index.ts"
+compatibility_date = "2026-10-18"
+workers_dev = true
+[vars]
+ALLOWED_ORIGINS = "https://www.almonhna.sa,https://almonhna.sa"
+[[r2_buckets]]
+binding = "IMAGE_BUCKET"
+bucket_name = "almonhna-images"
