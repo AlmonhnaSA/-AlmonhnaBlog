@@ -98,7 +98,7 @@ const AdminAddEditArticle = () => {
 
     if (await mediaCapabilities()) {
       try {
-        await saveMediaRecord("articles", id, { ...formData, product_id: formData.product_id || null, sequence_points: extras.sequencePoints.map(p => p.trim()).filter(Boolean).slice(0, 5) }, {
+        await saveMediaRecord("articles", id, { ...formData, product_id: formData.product_id || null, sequence_points: extras.sequencePoints.map(p => p.trim()).filter(Boolean).length >= 3 ? extras.sequencePoints.map(p => p.trim()).filter(Boolean).slice(0, 5) : [] }, {
           article_categories: extras.categoryIds.map(category_id => ({ category_id })),
           article_knowledge_links: extras.knowledgeLinks.filter(l => l.target_article_id).map(l => ({ anchor_key: l.anchor_key, question: l.question, target_article_id: l.target_article_id })),
           article_continuations: extras.continuationIds.slice(0, 3).map((target_article_id, display_order) => ({ target_article_id, display_order })),
@@ -132,7 +132,8 @@ const AdminAddEditArticle = () => {
         return;
       }
 
-      await saveArticleExtras(id, extras);
+      try { await saveArticleExtras(id, extras); }
+      catch { toast({ title: "حُفظ المقال لكن تعذّر حفظ روابطه؛ راجعه قبل المتابعة", variant: "destructive" }); return; }
 
       toast({
         title: "تم التحديث",

@@ -146,7 +146,8 @@ export const AddEditArticle = () => {
         return;
       }
 
-      await saveArticleExtras(id, extras);
+      try { await saveArticleExtras(id, extras); }
+      catch { toast({ title: "حُفظ المقال لكن تعذّر حفظ روابطه؛ راجعه قبل المتابعة", variant: "destructive" }); return; }
 
       toast({
         title: "تم التحديث",
@@ -168,7 +169,8 @@ export const AddEditArticle = () => {
         return;
       }
 
-      if (inserted?.id) await saveArticleExtras(inserted.id, extras);
+      try { if (inserted?.id) await saveArticleExtras(inserted.id, extras); }
+      catch { toast({ title: "حُفظ المقال لكن تعذّر حفظ روابطه؛ راجعه قبل المتابعة", variant: "destructive" }); return; }
 
       toast({
         title: "تم الإضافة",

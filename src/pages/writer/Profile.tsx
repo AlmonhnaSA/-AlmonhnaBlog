@@ -68,7 +68,7 @@ export const WriterProfile = () => {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
     if (await mediaCapabilities()) {
       const { data: current } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();

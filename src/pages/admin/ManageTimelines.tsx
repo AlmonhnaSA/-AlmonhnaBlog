@@ -1,4 +1,4 @@
-import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { deleteMediaRecord, mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
 import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
@@ -148,7 +148,8 @@ const ManageTimelines = () => {
 
   const remove = async (t: Timeline) => {
     if (!confirm(`حذف الخط "${t.title}"؟`)) return;
-    await supabase.from("timelines").delete().eq("id", t.id);
+    const { error } = await deleteMediaRecord("timelines", t.id);
+    if (error) { toast({ title: "تعذّر الحذف", variant: "destructive" }); return; }
     load();
   };
 

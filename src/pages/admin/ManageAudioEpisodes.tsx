@@ -1,4 +1,4 @@
-import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { rememberMediaRevision } from "@/lib/mediaMutations";
 import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
@@ -110,6 +110,7 @@ const ManageAudioEpisodes = () => {
   };
 
   const save = async (t: Episode) => {
+    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع صورة الحلقة", variant: "destructive" }); return; }
     if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }
