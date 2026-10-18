@@ -56,11 +56,12 @@ CREATE POLICY media_audit_admin_read ON public.media_audit FOR SELECT TO authent
 -- same advisory lock. No provider deletion occurs inside a DB transaction.
 CREATE OR REPLACE FUNCTION public.media_reference_guard()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE old_id text; new_id text; payload text; a record;
+DECLARE old_id text; new_id text; payload text; a record; detached uuid[];
 BEGIN
   PERFORM pg_advisory_xact_lock(771829461);
   IF TG_OP <> 'INSERT' THEN
     old_id := to_jsonb(OLD)->>'id';
+    SELECT array_agg(asset_id) INTO detached FROM public.media_references WHERE source_table = TG_TABLE_NAME AND source_id = old_id;
     DELETE FROM public.media_references WHERE source_table = TG_TABLE_NAME AND source_id = old_id;
   END IF;
   IF TG_OP <> 'DELETE' THEN
@@ -78,7 +79,7 @@ BEGIN
     END LOOP;
   END IF;
   INSERT INTO public.media_jobs(asset_id)
-    SELECT asset_row.id FROM public.media_assets asset_row WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = asset_row.id)
+    SELECT asset_row.id FROM public.media_assets asset_row WHERE asset_row.id = ANY(coalesce(detached, '{}'::uuid[])) AND NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = asset_row.id)
     AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = asset_row.id AND j.status = 'preview');
   INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),TG_OP || ':' || TG_TABLE_NAME,'committed');
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
@@ -141,7 +142,7 @@ BEGIN
     EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO child_count USING p_id;
     IF child_count <> jsonb_array_length(child_rows) THEN RAISE EXCEPTION 'children_save_unconfirmed'; END IF;
   END LOOP;
-  RETURN result;
+  RETURN result || jsonb_build_object('cleanup_txid', txid_current()::text);
 END $$;
 -- Audit commits are recorded by the privileged reference trigger, not a client.
 GRANT EXECUTE ON FUNCTION public.media_save(text,uuid,jsonb,jsonb,timestamptz) TO authenticated;
@@ -151,11 +152,11 @@ CREATE OR REPLACE FUNCTION public.media_delete(p_table text, p_id uuid, p_expect
 RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path = public AS $$
 DECLARE result jsonb; BEGIN
  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'unauthorized'; END IF;
- IF p_table NOT IN ('articles','news','products','store_products','timelines') THEN RAISE EXCEPTION 'unsupported_table'; END IF;
+ IF p_table NOT IN ('articles','news','products','store_products','timelines','audio_episodes') THEN RAISE EXCEPTION 'unsupported_table'; END IF;
  PERFORM pg_advisory_xact_lock(771829461);
  EXECUTE format('DELETE FROM public.%I WHERE id=$1 AND updated_at=$2 RETURNING to_jsonb(%I.*)',p_table,p_table) INTO result USING p_id,p_expected_updated_at;
  IF result IS NULL THEN RAISE EXCEPTION 'not_found_forbidden_or_conflict'; END IF;
- RETURN jsonb_build_object('id',result->>'id','deleted',true);
+ RETURN jsonb_build_object('id',result->>'id','deleted',true,'cleanup_txid',txid_current()::text);
 END $$;
 REVOKE ALL ON FUNCTION public.media_delete(text,uuid,timestamptz) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.media_delete(text,uuid,timestamptz) TO authenticated;
