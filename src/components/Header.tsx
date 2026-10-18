@@ -122,7 +122,7 @@ const handleAudioClick = (e: React.MouseEvent) => {
   e.preventDefault();
 
   if (window.location.pathname === "/") {
-    const audioSection = document.getElementById("audio-section");
+    const audioSection = document.getElementById("masmoo3");
 
     if (audioSection) {
       audioSection.scrollIntoView({
@@ -134,7 +134,7 @@ const handleAudioClick = (e: React.MouseEvent) => {
     navigate("/");
 
     setTimeout(() => {
-      const audioSection = document.getElementById("audio-section");
+      const audioSection = document.getElementById("masmoo3");
 
       if (audioSection) {
         audioSection.scrollIntoView({
