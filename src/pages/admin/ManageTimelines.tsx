@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +48,7 @@ const ManageTimelines = () => {
       supabase.from("timelines").select("*").order("display_order"),
       supabase.from("timeline_stops").select("*").order("display_order"),
     ]);
+    (lines || []).forEach(row => rememberMediaRevision("timelines", row));
     setTimelines(
       (lines || []).map((l: any) => ({
         id: l.id,
@@ -95,6 +98,16 @@ const ManageTimelines = () => {
   };
 
   const save = async (t: Timeline) => {
+    if (mediaUploadInProgress()) return;
+    if (await mediaCapabilities()) {
+      try {
+        await saveMediaRecord("timelines", t.id, { title: t.title, timeline_type: t.timeline_type, image_url: t.image_url || null, color: t.color, is_active: t.is_active }, {
+          timeline_stops: t.stops.filter(s => s.title.trim()).map((s, display_order) => ({ title: s.title, label: s.label || null, description: s.description || null, image_url: s.image_url || null, article_id: s.article_id || null, display_order })),
+        });
+        toast({ title: "تم الحفظ" }); load();
+      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
+      return;
+    }
     const { error } = await supabase
       .from("timelines")
       .update({

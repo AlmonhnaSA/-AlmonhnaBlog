@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +44,7 @@ const ManageAudioEpisodes = () => {
 
   const load = async () => {
     const { data } = await supabase.from("audio_episodes").select("*").order("display_order");
+    (data || []).forEach(row => rememberMediaRevision("audio_episodes", row));
     const mapped = (data || []).map((e: any) => ({
         id: e.id,
         title: e.title || "",

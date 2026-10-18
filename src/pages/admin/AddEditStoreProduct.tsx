@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +55,7 @@ export const AddEditStoreProduct = () => {
       .single();
 
     if (product) {
+      rememberMediaRevision("store_products", product);
       setFormData({
         name: product.name,
         description: product.description || "",
@@ -143,12 +146,23 @@ export const AddEditStoreProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع الملفات", variant: "destructive" }); return; }
 
     if (!formData.name || !formData.image_url) {
       toast({ title: "خطأ", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" });
       return;
     }
 
+    if (await mediaCapabilities()) {
+      try {
+        await saveMediaRecord("store_products", id, formData, {
+          store_product_images: subImages.filter(i => i.image_url).map((i, display_order) => ({ image_url: i.image_url, display_order })),
+          store_product_files: files.map(f => ({ file_url: f.file_url, file_name: f.file_name, file_size: f.file_size })),
+        });
+        toast({ title: "تم الحفظ" }); navigate("/admin/store");
+      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
+      return;
+    }
     try {
       let productId = id;
 
