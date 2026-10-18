@@ -56,7 +56,7 @@ R2_IMAGES_PUBLIC_URL=<عنوان HTTPS الخاص بموفر الصور الجد
    supabase functions deploy media-lifecycle --project-ref <المشروع-المستقل> --no-verify-jwt
    supabase secrets set --env-file C:\Private\edge-images.env --project-ref <المشروع-المستقل>
    ```
-   الملف الثاني يحتوي R2_IMAGES_* فقط، و`R2_IMAGES_ENABLED=true` و`MEDIA_MUTATIONS_VALIDATED=true` بعد نجاح الاختبارات؛ `MEDIA_ATTACHMENT_MAX_BYTES` بحسب سياسة المتجر القائمة. اعتمادات SUPABASE_* يستخدمها runtime المشروع المستقل. اختبر إدارة/كاتب/حساب ممنوع، رفع/استبدال/حذف مشترك، فشل الطفل، جلستين متزامنتين وقياس أداء الحارس على الحجم الحقيقي. لا تعتمد على اختبارات محلية لإثبات هذا.
+   الملف الثاني يحتوي R2_IMAGES_*، و`MEDIA_ALLOWED_ORIGINS` قائمة عناوين الموقع وVercel المعتمدة مفصولة بفاصلة دون wildcard، و`R2_IMAGES_ENABLED=true` و`MEDIA_MUTATIONS_VALIDATED=true` بعد نجاح الاختبارات؛ `MEDIA_ATTACHMENT_MAX_BYTES` بحسب سياسة المتجر القائمة. اعتمادات SUPABASE_* يستخدمها runtime المشروع المستقل. اختبر إدارة/كاتب/حساب ممنوع، رفع/استبدال/حذف مشترك، فشل الطفل، جلستين متزامنتين وقياس أداء الحارس على الحجم الحقيقي. لا تعتمد على اختبارات محلية لإثبات هذا.
 
 5. **النشر اليدوي بعد الاختبار وموافقتك:** المتغيران الاختياريان في Vercel `VITE_IMAGE_BASE_URL` و`VITE_IMAGE_SOURCE_PROJECT` ينقلان عرض روابط Storage العامة القديمة والمحوّلة إلى Worker مع رجوع للأصل عند الفشل. الروابط الموقعة/الخاصة تبقى الأصل؛ لا تحوّلها إلى عامة. الروابط الموجودة خارج الموقع تبقى على المصدر القديم. اختبر الصفحات والمحرر والمعارض والتقديم في الإنتاج قبل أي حذف مصدر.
 

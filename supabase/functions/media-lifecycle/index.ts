@@ -10,7 +10,12 @@ import { r2ImageProvider } from "./r2Provider.ts";
 const tables = new Set(["articles", "news", "products", "store_products", "profiles", "timelines", "audio_episodes"]);
 const respond = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" } });
 Deno.serve(async req => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const origin = req.headers.get("Origin");
+  const allowed = (Deno.env.get("MEDIA_ALLOWED_ORIGINS") || "").split(",").map(v => v.trim()).filter(Boolean);
+  const scopedHeaders = { ...corsHeaders, "Access-Control-Allow-Origin": origin && allowed.includes(origin) ? origin : "", "Vary": "Origin" };
+  const respond = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...scopedHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  if (origin && !allowed.includes(origin)) return respond({ error: "origin_forbidden" }, 403);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: scopedHeaders });
   if (req.method !== "POST") return respond({ error: "method_not_allowed" }, 405);
   try {
     const base = Deno.env.get("SUPABASE_URL");
