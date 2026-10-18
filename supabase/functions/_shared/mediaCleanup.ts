@@ -21,7 +21,9 @@ export async function drainMediaCleanup(
   let deleted = 0;
   for (let i = 0; i < 20; i++) {
     const claim = await repository.claim(receipt);
-    if (!claim) return { deleted, pending: false, disabled: false };
+    // No claim can mean protected, leased, delayed or release-blocked. Do not
+    // misreport those states as an empty queue.
+    if (!claim) return { deleted, pending: true, disabled: false };
     try {
       const provider = providers[claim.provider];
       if (!provider) throw new Error("unsupported_provider");

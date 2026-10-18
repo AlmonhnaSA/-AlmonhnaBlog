@@ -5,7 +5,8 @@ function client(status:string,data:unknown=null,removeError:unknown=null) {
   const calls:string[]=[];
   const mock={storage:{from(bucket:string){calls.push(bucket);return{
     async remove(keys:string[]){calls.push(keys.join(","));return{error:removeError};},
-    async info(){return{data,error:{statusCode:status}};},
+    async info(){return{data,error:{statusCode:status,message:"Object not found"}};},
+    async list(){return{data:[],error:null};},
   };}}};
   return {calls,provider:cloudImageProvider(mock as unknown as Parameters<typeof cloudImageProvider>[0])};
 }

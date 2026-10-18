@@ -129,8 +129,8 @@ DECLARE a record; j record; t record; hits bigint; token uuid; payload record; n
 BEGIN
   PERFORM pg_advisory_xact_lock(771829461);
   IF NOT EXISTS(SELECT 1 FROM media_cleanup_release WHERE project_host=p_host AND inventory_reviewed AND backup_reviewed AND external_reviewed AND storage_policies_reviewed AND valid_until>now()) THEN RETURN NULL; END IF;
-  FOR t IN SELECT c.oid,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname NOT LIKE 'media_%' LOOP
-    IF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=t.oid AND tgfoid='public.media_reference_guard()'::regprocedure AND tgenabled='O') THEN RETURN NULL; END IF;
+  FOR t IN SELECT c.oid,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname NOT IN ('media_assets','media_references','media_jobs','media_audit','media_cleanup_release','media_protections') LOOP
+    IF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=t.oid AND tgfoid='public.media_reference_guard()'::regprocedure AND tgenabled IN ('O','A') AND (tgtype::int & 29)=29 AND (tgtype::int & 2)=0) THEN RETURN NULL; END IF;
   END LOOP;
   FOR j IN SELECT * FROM media_jobs WHERE receipt=p_receipt AND status IN ('preview','retry','deleting') AND next_attempt_at<=now() ORDER BY created_at,id FOR UPDATE LOOP
     SELECT * INTO a FROM media_assets WHERE id=j.asset_id FOR UPDATE;
@@ -140,7 +140,7 @@ BEGIN
       OR a.lease_until>now() OR a.state NOT IN ('ready','deleting')
       OR EXISTS(SELECT 1 FROM media_protections WHERE asset_id=a.id) THEN CONTINUE; END IF;
     hits := 0;
-    FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT LIKE 'media_%' LOOP
+    FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('media_assets','media_references','media_jobs','media_audit','media_cleanup_release','media_protections') LOOP
       FOR payload IN EXECUTE format('SELECT to_jsonb(t)::text AS text FROM public.%I t',t.tablename) LOOP
         BEGIN normalized := media_normalize(payload.text);
         EXCEPTION WHEN OTHERS THEN RETURN NULL; END;
@@ -152,7 +152,7 @@ BEGIN
       INSERT INTO media_audit(asset_id,operation,outcome) VALUES(a.id,'cleanup','referenced');
       CONTINUE;
     END IF;
-    token := coalesce(a.deletion_token,gen_random_uuid());
+    token := gen_random_uuid(); -- rotate every lease; stale workers cannot reconcile
     UPDATE media_assets SET state='deleting',deletion_token=token,worker_until=now()+interval '5 minutes' WHERE id=a.id;
     UPDATE media_jobs SET status='deleting',attempts=attempts+1 WHERE id=j.id;
     INSERT INTO media_audit(asset_id,operation,outcome) VALUES(a.id,'cleanup','claimed');
@@ -195,7 +195,7 @@ BEGIN
   ON CONFLICT(bucket,object_key) DO NOTHING;
   GET DIAGNOSTICS inserted=ROW_COUNT;
   -- Rebuild references without replaying content writes or modifying site data.
-  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT LIKE 'media_%' LOOP
+  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('media_assets','media_references','media_jobs','media_audit','media_cleanup_release','media_protections') LOOP
     FOR payload IN EXECUTE format('SELECT to_jsonb(t) AS value FROM public.%I t',t.tablename) LOOP
       IF payload.value->>'id' IS NULL THEN RAISE EXCEPTION 'source_without_id'; END IF;
       FOR a IN SELECT * FROM media_assets LOOP

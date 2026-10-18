@@ -89,7 +89,7 @@ REVOKE ALL ON FUNCTION public.media_reference_guard() FROM PUBLIC, anon, authent
 
 DO $$ DECLARE t record; BEGIN
   FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
-    AND tablename NOT LIKE 'media_%'
+    AND tablename NOT IN ('media_assets','media_references','media_jobs','media_audit','media_cleanup_release','media_protections')
     AND EXISTS(SELECT 1 FROM information_schema.columns c WHERE c.table_schema = 'public' AND c.table_name = tablename AND c.column_name = 'id')
   LOOP
     EXECUTE format('CREATE TRIGGER media_reference_guard AFTER INSERT OR UPDATE OR DELETE ON public.%I FOR EACH ROW EXECUTE FUNCTION public.media_reference_guard()', t.tablename);
