@@ -1,4 +1,4 @@
-import { rememberMediaRevision } from "@/lib/mediaMutations";
+import { deleteMediaRecord, mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
 import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
@@ -60,7 +60,7 @@ const ManageAudioEpisodes = () => {
     savedAudio.current = Object.fromEntries(mapped.map((e) => [e.id, e.audio_url]));
     // Reloading must not drop an upload that is still waiting to be saved.
     const pending = new Map(unsavedUploads().map((t) => [t.id, t.audio_url]));
-    setItems(mapped.map((e) => (pending.has(e.id) ? { ...e, audio_url: pending.get(e.id)! } : e)));
+    setItems(mapped.map((e) => ({ ...e, audio_url: pending.get(e.id) ?? e.audio_url })));
   };
 
   useEffect(() => {
@@ -118,6 +118,21 @@ const ManageAudioEpisodes = () => {
       toast({ title: "تنبيه", description: "الحلقة بدون ملف صوتي، لن تعمل في المشغّل", variant: "destructive" });
     }
     const previous = savedAudio.current[t.id];
+    if (await mediaCapabilities()) {
+      try {
+        await saveMediaRecord("audio_episodes", t.id, {
+          title: t.title, description: t.description || null, category: t.category || null,
+          audio_url: t.audio_url, cover_image_url: t.cover_image_url || null,
+          duration_label: t.duration_label || null, episode_date: t.episode_date || null,
+          is_featured: t.is_featured, is_active: t.is_active,
+        });
+        savedAudio.current[t.id] = t.audio_url;
+        if (previous && previous !== t.audio_url) discardR2Upload(previous);
+        toast({ title: "تم الحفظ", description: "تم تحديث الحلقة" });
+        load();
+      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
+      return;
+    }
     const { error } = await supabase
       .from("audio_episodes")
       .update({
@@ -145,7 +160,7 @@ const ManageAudioEpisodes = () => {
 
   const remove = async (t: Episode) => {
     if (!confirm(`حذف "${t.title}"؟`)) return;
-    const { error } = await supabase.from("audio_episodes").delete().eq("id", t.id);
+    const { error } = await deleteMediaRecord("audio_episodes", t.id);
     if (error) {
       toast({ title: "خطأ", description: "تعذّر الحذف", variant: "destructive" });
       return;

@@ -2,7 +2,7 @@
 
 - Use mediaUploads for non-audio uploads; activate transactional media mutations only after server validation, retaining checked legacy operations without file cleanup until deployment approval.
 - Keep inventory credentials local and require explicit project binding/full visibility; unmatched files are advisory, never deletion authority.
-- Stage media SQL in docs, not managed migrations; keep physical deletion disabled pending encoded-reference fencing, independent backfill, concurrency/Storage-policy review and separate approval.
+- Stage media SQL/Storage policies in docs; use verified transaction receipts, fresh full-reference checks, durable tombstones and provider adapters. Keep deletion disabled until independent-backend validation and separate approval.
 
 - Load non-homepage routes on demand so editors, PDF tools, and administration code do not delay public startup.
 - Choose transformed image candidates from measured layout width and device pixel ratio, preserving original fallback and uploaded files; small portraits must not download cover-sized variants.
