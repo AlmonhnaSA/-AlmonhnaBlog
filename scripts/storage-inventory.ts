@@ -13,6 +13,8 @@ if (!expected || !/^[a-z]{20}$/.test(expected) || base !== `https://${expected}.
 if (new URL(databaseUrl).hostname !== `db.${expected}.supabase.co` && process.env.MEDIA_CONFIRM_POOLER_PROJECT !== expected) throw new Error("Database project mismatch; a pooler requires explicit local project confirmation.");
 const sql = postgres(databaseUrl, { max: 1, onnotice: () => {}, connection: { default_transaction_read_only: "on", statement_timeout: 120000 } });
 const errors: string[] = [];
+if (new URL(databaseUrl).hostname !== `db.${expected}.supabase.co`) errors.push("pooler_project_binding_not_independently_verified");
+if (process.env.MEDIA_SOURCE_SCOPE_REVIEWED !== "true") errors.push("source_scope_not_reviewed");
 const sources: { location: string; value: unknown }[] = [];
 const files: StoredFile[] = [];
 const out = resolve(process.env.MEDIA_REPORT_DIR || "/tmp/media-inventory");

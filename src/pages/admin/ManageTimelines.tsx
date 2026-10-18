@@ -124,7 +124,8 @@ const ManageTimelines = () => {
       return;
     }
 
-    await supabase.from("timeline_stops").delete().eq("timeline_id", t.id);
+    const { error: childDeleteError } = await supabase.from("timeline_stops").delete().eq("timeline_id", t.id);
+    if (childDeleteError) { toast({ title: "تعذّر حفظ المحطات", variant: "destructive" }); return; }
     const rows = t.stops
       .filter((s) => s.title.trim())
       .map((s, i) => ({
@@ -136,7 +137,10 @@ const ManageTimelines = () => {
         article_id: s.article_id || null,
         display_order: i,
       }));
-    if (rows.length) await supabase.from("timeline_stops").insert(rows);
+    if (rows.length) {
+      const { error } = await supabase.from("timeline_stops").insert(rows);
+      if (error) { toast({ title: "تعذّر حفظ المحطات", variant: "destructive" }); return; }
+    }
 
     toast({ title: "تم الحفظ", description: "تم تحديث الخط الزمني" });
     load();

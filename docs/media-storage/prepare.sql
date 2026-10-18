@@ -80,6 +80,7 @@ BEGIN
   INSERT INTO public.media_jobs(asset_id)
     SELECT id FROM public.media_assets a WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = a.id)
     AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = a.id AND j.status = 'preview');
+  INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),TG_OP || ':' || TG_TABLE_NAME,'committed');
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
   RETURN NEW;
 END $$;
@@ -118,7 +119,7 @@ BEGIN
   SELECT string_agg(format('%I', k), ',') INTO cols FROM jsonb_object_keys(p_values) k;
   IF cols IS NULL THEN RAISE EXCEPTION 'empty_values'; END IF;
   IF p_id IS NULL THEN
-    EXECUTE format('INSERT INTO public.%I (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1) RETURNING to_jsonb(%I.*)',p_table,cols,cols,p_table,p_table) INTO result USING p_values;
+    EXECUTE format('INSERT INTO public.%I AS t (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1) RETURNING to_jsonb(t)',p_table,cols,cols,p_table) INTO result USING p_values;
   ELSE
     SELECT string_agg(format('%I = v.%I', k, k), ',') INTO vals FROM jsonb_object_keys(p_values) k;
     EXECUTE format('UPDATE public.%I t SET %s FROM jsonb_populate_record(NULL::public.%I,$1) v WHERE t.id=$2 RETURNING to_jsonb(t)',p_table,vals,p_table) INTO result USING p_values,p_id;
@@ -130,6 +131,8 @@ BEGIN
     fk := CASE WHEN p_table='store_products' THEN 'store_product_id' WHEN p_table='timelines' THEN 'timeline_id' ELSE 'article_id' END;
     IF jsonb_typeof(child_rows) <> 'array' THEN RAISE EXCEPTION 'invalid_children'; END IF;
     EXECUTE format('DELETE FROM public.%I WHERE %I=$1',child,fk) USING p_id;
+    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO current_row USING p_id;
+    IF current_row <> '0'::jsonb THEN RAISE EXCEPTION 'children_delete_unconfirmed'; END IF;
     FOR row_value IN SELECT value FROM jsonb_array_elements(child_rows) LOOP
       row_value := (row_value - 'id' - 'created_at' - 'updated_at') || jsonb_build_object(fk,p_id);
       SELECT string_agg(format('%I', k), ',') INTO attrs FROM jsonb_object_keys(row_value) k;

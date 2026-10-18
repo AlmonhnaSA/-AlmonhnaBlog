@@ -1,5 +1,5 @@
 import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
-import { mediaUploadInProgress } from "@/lib/mediaUploads";
+import { uploadMedia, mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,21 +95,7 @@ export const AddEditStoreProduct = () => {
 
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
-        const uniqueName = `${userData.user.id}/${crypto.randomUUID()}_${file.name}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("store-files")
-          .upload(uniqueName, file);
-
-        if (uploadError) {
-          console.error(`Upload error for file ${file.name}:`, uploadError);
-          toast({ title: `خطأ في رفع ${file.name}`, description: uploadError.message, variant: "destructive" });
-          continue; // skip this file but continue with others
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from("store-files")
-          .getPublicUrl(uniqueName);
+        const publicUrl = await uploadMedia(file, "attachment");
 
         newFiles.push({
           file_url: publicUrl,
@@ -177,27 +163,30 @@ export const AddEditStoreProduct = () => {
 
       // Handle sub-images: delete old ones and insert new
       if (id) {
-        await supabase.from("store_product_images").delete().eq("store_product_id", id);
+        const { error } = await supabase.from("store_product_images").delete().eq("store_product_id", id);
+        if (error) throw error;
       }
       if (subImages.length > 0) {
         const validImages = subImages.filter(img => img.image_url);
         if (validImages.length > 0) {
-          await supabase.from("store_product_images").insert(
+          const { error } = await supabase.from("store_product_images").insert(
             validImages.map((img, i) => ({
               store_product_id: productId,
               image_url: img.image_url,
               display_order: i,
             }))
           );
+          if (error) throw error;
         }
       }
 
       // Handle files: delete old ones and insert new
       if (id) {
-        await supabase.from("store_product_files").delete().eq("store_product_id", id);
+        const { error } = await supabase.from("store_product_files").delete().eq("store_product_id", id);
+        if (error) throw error;
       }
       if (files.length > 0) {
-        await supabase.from("store_product_files").insert(
+        const { error } = await supabase.from("store_product_files").insert(
           files.map(f => ({
             store_product_id: productId,
             file_url: f.file_url,
@@ -205,6 +194,7 @@ export const AddEditStoreProduct = () => {
             file_size: f.file_size,
           }))
         );
+        if (error) throw error;
       }
 
       toast({ title: id ? "تم التحديث" : "تم الإضافة", description: id ? "تم تحديث المنتج بنجاح" : "تم إضافة المنتج بنجاح" });
