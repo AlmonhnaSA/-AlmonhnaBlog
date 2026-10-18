@@ -116,6 +116,38 @@ export const Header = () => {
     }
   };
 
+
+
+const handleAudioClick = (e: React.MouseEvent) => {
+  e.preventDefault();
+
+  if (window.location.pathname === "/") {
+    const audioSection = document.getElementById("audio-section");
+
+    if (audioSection) {
+      audioSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  } else {
+    navigate("/");
+
+    setTimeout(() => {
+      const audioSection = document.getElementById("audio-section");
+
+      if (audioSection) {
+        audioSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
+  }
+};
+
+
+  
   const handleLogoClick = (e: React.MouseEvent) => {
   e.preventDefault();
 
@@ -137,8 +169,7 @@ export const Header = () => {
         { label: "الأعمدة ", href: "#products", onClick: handleProductsClick },
     { label: "خدماتنا", href: "/news" },
     { label: "المقالات", href: "/articles" },
-    //لغينا المحفوظات
-    // { label: "المحفوظات", href: "/bookmarks" },
+     { label: "مسموع", href: "#audio", onClick: handleAudioClick  },
     { label: "المتجر", href: "/store" },
   ];
 
