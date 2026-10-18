@@ -101,7 +101,7 @@ CREATE OR REPLACE FUNCTION public.media_save(
  p_table text, p_id uuid, p_values jsonb, p_children jsonb DEFAULT '{}'::jsonb,
  p_expected_updated_at timestamptz DEFAULT NULL
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path = public AS $$
-DECLARE result jsonb; current_row jsonb; cols text; vals text; child text; child_rows jsonb; row_value jsonb; fk text; attrs text;
+DECLARE result jsonb; current_row jsonb; cols text; vals text; child text; child_rows jsonb; row_value jsonb; fk text; attrs text; child_count bigint;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'unauthorized'; END IF;
   IF p_table NOT IN ('articles','news','products','store_products','profiles','timelines','audio_episodes') THEN RAISE EXCEPTION 'unsupported_table'; END IF;
@@ -131,13 +131,15 @@ BEGIN
     fk := CASE WHEN p_table='store_products' THEN 'store_product_id' WHEN p_table='timelines' THEN 'timeline_id' ELSE 'article_id' END;
     IF jsonb_typeof(child_rows) <> 'array' THEN RAISE EXCEPTION 'invalid_children'; END IF;
     EXECUTE format('DELETE FROM public.%I WHERE %I=$1',child,fk) USING p_id;
-    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO current_row USING p_id;
-    IF current_row <> '0'::jsonb THEN RAISE EXCEPTION 'children_delete_unconfirmed'; END IF;
+    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO child_count USING p_id;
+    IF child_count <> 0 THEN RAISE EXCEPTION 'children_delete_unconfirmed'; END IF;
     FOR row_value IN SELECT value FROM jsonb_array_elements(child_rows) LOOP
       row_value := (row_value - 'id' - 'created_at' - 'updated_at') || jsonb_build_object(fk,p_id);
       SELECT string_agg(format('%I', k), ',') INTO attrs FROM jsonb_object_keys(row_value) k;
       EXECUTE format('INSERT INTO public.%I (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1)',child,attrs,attrs,child) USING row_value;
     END LOOP;
+    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO child_count USING p_id;
+    IF child_count <> jsonb_array_length(child_rows) THEN RAISE EXCEPTION 'children_save_unconfirmed'; END IF;
   END LOOP;
   RETURN result;
 END $$;

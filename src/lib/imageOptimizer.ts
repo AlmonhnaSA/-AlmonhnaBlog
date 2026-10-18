@@ -119,8 +119,8 @@ export const compressImage = async (file: File, maxDim = 1920, quality = 0.85): 
     const bmp = await createImageBitmap(file);
     const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale);
-    canvas.height = Math.round(bmp.height * scale);
+    canvas.width = Math.max(1, Math.round(bmp.width * scale));
+    canvas.height = Math.max(1, Math.round(bmp.height * scale));
     const context = canvas.getContext("2d");
     if (!context) { bmp.close(); return file; }
     context.drawImage(bmp, 0, 0, canvas.width, canvas.height);

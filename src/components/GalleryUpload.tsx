@@ -33,7 +33,8 @@ const pdfToImages = async (file: File, max: number, onProgress: (p: string) => v
   for (let i = 1; i <= count; i++) {
     onProgress(`تحويل الصفحة ${i} من ${count}...`);
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.6 });
+    const natural = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: Math.min(1.6, 1920 / Math.max(natural.width, natural.height)) });
     const canvas = document.createElement("canvas");
     canvas.width = viewport.width;
     canvas.height = viewport.height;
