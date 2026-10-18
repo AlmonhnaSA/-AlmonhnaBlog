@@ -45,7 +45,7 @@ Deno.serve(async req => {
       }, { supabase: cloudImageProvider(admin) });
     };
     if (body.action === "capabilities") {
-      const { error } = await admin.from("media_assets").select("id").limit(1);
+      const { error } = await admin.from("media_assets").select("id,provider,deletion_reviewed,deletion_token").limit(1);
       return error ? respond({ error: "schema_not_ready" }, 503) : respond({ version: 1, mutations: Deno.env.get("MEDIA_MUTATIONS_VALIDATED") === "true", physicalDelete: PHYSICAL_DELETE_ENABLED, dryRun: true });
     }
     if (body.action === "sign") {
@@ -53,7 +53,7 @@ Deno.serve(async req => {
       if (validated.bucket === "store-files" && !role) return respond({ error: "forbidden" }, 403);
       const id = crypto.randomUUID();
       const path = `${user.id}/media/${id}.${validated.extension}`;
-      const { error } = await admin.from("media_assets").insert({ id, owner_id: user.id, bucket: validated.bucket, object_key: path, bytes: body.size, mime: body.type });
+      const { error } = await admin.from("media_assets").insert({ id, owner_id: user.id, bucket: validated.bucket, object_key: path, bytes: body.size, mime: body.type, deletion_reviewed: /^image\//.test(body.type) });
       if (error) return respond({ error: "registry_unavailable" }, 503);
       await audit("upload_reserved", "registered", id);
       const { data: signed, error: signError } = await admin.storage.from(validated.bucket).createSignedUploadUrl(path, { upsert: false });
