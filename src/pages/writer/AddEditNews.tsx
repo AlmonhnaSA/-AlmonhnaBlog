@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +56,7 @@ export const AddEditNews = () => {
         .single();
 
       if (news) {
+      rememberMediaRevision("news", news);
         setNewsStatus(news.status);
         setFormData({
           title: news.title,
@@ -70,6 +73,7 @@ export const AddEditNews = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع الملفات", variant: "destructive" }); return; }
 
     if (!formData.title || !formData.excerpt.trim() || !formData.cover_image_url) {
       toast({
@@ -86,6 +90,11 @@ export const AddEditNews = () => {
       status: "pending" as "pending",
     };
 
+    if (await mediaCapabilities()) {
+      try { await saveMediaRecord("news", id, newsData); toast({ title: "تم الحفظ" }); navigate("/writer/news"); }
+      catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
+      return;
+    }
     if (id) {
       const { error } = await supabase
         .from("news")

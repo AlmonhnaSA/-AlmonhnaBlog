@@ -31,7 +31,7 @@ Deno.serve(async req => {
     };
     if (body.action === "capabilities") {
       const { error } = await admin.from("media_assets").select("id").limit(1);
-      return error ? respond({ error: "schema_not_ready" }, 503) : respond({ version: 1, mutations: true, physicalDelete: PHYSICAL_DELETE_ENABLED, dryRun: true });
+      return error ? respond({ error: "schema_not_ready" }, 503) : respond({ version: 1, mutations: Deno.env.get("MEDIA_MUTATIONS_VALIDATED") === "true", physicalDelete: PHYSICAL_DELETE_ENABLED, dryRun: true });
     }
     if (body.action === "sign") {
       const validated = validateMediaUpload(body, Number(Deno.env.get("MEDIA_ATTACHMENT_MAX_BYTES")) || undefined);

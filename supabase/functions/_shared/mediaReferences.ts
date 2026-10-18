@@ -5,7 +5,7 @@ export const identityKey = (v: MediaIdentity) => `${v.project}/${v.bucket}/${v.k
 export const isAudio = (key: string, type = "") => /(^|\/)(audio|episodes)(\/|$)/i.test(key) || /^audio\//i.test(type) || /\.(mp3|m4a|aac|wav|ogg|opus|flac|aiff)(?:$|\?)/i.test(key);
 
 export function decodeBounded(value: string): string {
-  let out = value.replace(/&amp;|&#38;|&#x26;/gi, "&").replace(/&#(?:x([0-9a-f]+)|(\d+));/gi, (_, hex, dec) => {
+  let out = value.replace(/\\u([0-9a-f]{4})/gi, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16))).replace(/&amp;|&#38;|&#x26;/gi, "&").replace(/&#(?:x([0-9a-f]+)|(\d+));/gi, (_, hex, dec) => {
     const code = Number.parseInt(hex || dec, hex ? 16 : 10);
     return code <= 0x10ffff ? String.fromCodePoint(code) : "";
   }).replace(/\\\//g, "/");

@@ -70,7 +70,7 @@ BEGIN
     -- Encoded legacy references are reviewed by the full read-only scanner.
     FOR a IN SELECT * FROM public.media_assets ORDER BY id FOR UPDATE LOOP
       IF strpos(payload, a.object_key) > 0 THEN
-        IF a.state IN ('deleting', 'deleted') THEN RAISE EXCEPTION 'media_unavailable'; END IF;
+        IF a.state IN ('uploading', 'deleting', 'deleted') THEN RAISE EXCEPTION 'media_unavailable'; END IF;
         INSERT INTO public.media_references(asset_id, source_table, source_id)
         VALUES (a.id, TG_TABLE_NAME, new_id) ON CONFLICT DO NOTHING;
         UPDATE public.media_assets SET state = 'ready', lease_until = now() WHERE id = a.id;
@@ -78,8 +78,9 @@ BEGIN
     END LOOP;
   END IF;
   INSERT INTO public.media_jobs(asset_id)
-    SELECT id FROM public.media_assets a WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = a.id)
-    AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = a.id AND j.status = 'preview');
+    SELECT asset_row.id FROM public.media_assets asset_row WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = asset_row.id)
+    AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = asset_row.id AND j.status = 'preview');
+  INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),TG_OP || ':' || TG_TABLE_NAME,'committed');
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
   RETURN NEW;
 END $$;
@@ -100,7 +101,7 @@ CREATE OR REPLACE FUNCTION public.media_save(
  p_table text, p_id uuid, p_values jsonb, p_children jsonb DEFAULT '{}'::jsonb,
  p_expected_updated_at timestamptz DEFAULT NULL
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path = public AS $$
-DECLARE result jsonb; current_row jsonb; cols text; vals text; child text; child_rows jsonb; row_value jsonb; fk text; attrs text;
+DECLARE result jsonb; current_row jsonb; cols text; vals text; child text; child_rows jsonb; row_value jsonb; fk text; attrs text; child_count bigint;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'unauthorized'; END IF;
   IF p_table NOT IN ('articles','news','products','store_products','profiles','timelines','audio_episodes') THEN RAISE EXCEPTION 'unsupported_table'; END IF;
@@ -118,7 +119,7 @@ BEGIN
   SELECT string_agg(format('%I', k), ',') INTO cols FROM jsonb_object_keys(p_values) k;
   IF cols IS NULL THEN RAISE EXCEPTION 'empty_values'; END IF;
   IF p_id IS NULL THEN
-    EXECUTE format('INSERT INTO public.%I (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1) RETURNING to_jsonb(%I.*)',p_table,cols,cols,p_table,p_table) INTO result USING p_values;
+    EXECUTE format('INSERT INTO public.%I AS t (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1) RETURNING to_jsonb(t)',p_table,cols,cols,p_table) INTO result USING p_values;
   ELSE
     SELECT string_agg(format('%I = v.%I', k, k), ',') INTO vals FROM jsonb_object_keys(p_values) k;
     EXECUTE format('UPDATE public.%I t SET %s FROM jsonb_populate_record(NULL::public.%I,$1) v WHERE t.id=$2 RETURNING to_jsonb(t)',p_table,vals,p_table) INTO result USING p_values,p_id;
@@ -130,18 +131,19 @@ BEGIN
     fk := CASE WHEN p_table='store_products' THEN 'store_product_id' WHEN p_table='timelines' THEN 'timeline_id' ELSE 'article_id' END;
     IF jsonb_typeof(child_rows) <> 'array' THEN RAISE EXCEPTION 'invalid_children'; END IF;
     EXECUTE format('DELETE FROM public.%I WHERE %I=$1',child,fk) USING p_id;
+    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO child_count USING p_id;
+    IF child_count <> 0 THEN RAISE EXCEPTION 'children_delete_unconfirmed'; END IF;
     FOR row_value IN SELECT value FROM jsonb_array_elements(child_rows) LOOP
       row_value := (row_value - 'id' - 'created_at' - 'updated_at') || jsonb_build_object(fk,p_id);
       SELECT string_agg(format('%I', k), ',') INTO attrs FROM jsonb_object_keys(row_value) k;
       EXECUTE format('INSERT INTO public.%I (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1)',child,attrs,attrs,child) USING row_value;
     END LOOP;
+    EXECUTE format('SELECT count(*) FROM public.%I WHERE %I=$1',child,fk) INTO child_count USING p_id;
+    IF child_count <> jsonb_array_length(child_rows) THEN RAISE EXCEPTION 'children_save_unconfirmed'; END IF;
   END LOOP;
-  INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),'save:'||p_table,'committed');
   RETURN result;
 END $$;
--- The caller-scoped RPC needs audit INSERT without permitting forged records:
--- remove the INSERT above; auditing is performed by the trusted endpoint.
--- See replacement below for audit writer separate from caller's transaction.
+-- Audit commits are recorded by the privileged reference trigger, not a client.
 GRANT EXECUTE ON FUNCTION public.media_save(text,uuid,jsonb,jsonb,timestamptz) TO authenticated;
 REVOKE ALL ON FUNCTION public.media_save(text,uuid,jsonb,jsonb,timestamptz) FROM PUBLIC, anon;
 

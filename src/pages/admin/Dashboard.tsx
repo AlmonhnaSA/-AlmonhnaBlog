@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -24,11 +26,12 @@ const AdminDashboard = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("name, photo_url")
+        .select("id, name, photo_url, updated_at")
         .eq("user_id", userData.user.id)
         .single();
 
       if (error) throw error;
+      if (data) rememberMediaRevision("profiles", data);
       if (data?.photo_url) setPhotoUrl(data.photo_url);
       return data;
     },
@@ -62,6 +65,13 @@ const AdminDashboard = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("User not found");
 
+      if (mediaUploadInProgress()) throw new Error("upload_in_progress");
+      if (await mediaCapabilities()) {
+        const { data: current } = await supabase.from("profiles").select("id").eq("user_id", userData.user.id).single();
+        if (!current) throw new Error("missing_profile");
+        await saveMediaRecord("profiles", current.id, { photo_url: newPhotoUrl });
+        return newPhotoUrl;
+      }
       const { error } = await supabase
         .from("profiles")
         .update({ photo_url: newPhotoUrl })

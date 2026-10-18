@@ -1,3 +1,5 @@
+import { rememberMediaRevision } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +44,7 @@ const ManageAudioEpisodes = () => {
 
   const load = async () => {
     const { data } = await supabase.from("audio_episodes").select("*").order("display_order");
+    (data || []).forEach(row => rememberMediaRevision("audio_episodes", row));
     const mapped = (data || []).map((e: any) => ({
         id: e.id,
         title: e.title || "",
@@ -107,6 +110,7 @@ const ManageAudioEpisodes = () => {
   };
 
   const save = async (t: Episode) => {
+    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع صورة الحلقة", variant: "destructive" }); return; }
     if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }

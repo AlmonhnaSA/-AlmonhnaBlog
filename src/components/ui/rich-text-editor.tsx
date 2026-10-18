@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
+import { uploadMedia } from '@/lib/mediaUploads';
 
 interface RichTextEditorProps {
   value: string;
@@ -16,18 +17,8 @@ const RichTextEditor = ({ value, onChange, placeholder, height = "400px" }: Rich
   };
 
   const handleImageUpload = (blobInfo: any, progress: (percent: number) => void): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-      // في الوقت الحالي سنستخدم data URL
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => reject('فشل في رفع الصورة');
-      reader.readAsDataURL(blobInfo.blob());
-    });
+    const blob = blobInfo.blob() as Blob;
+    return uploadMedia(new File([blob], blobInfo.filename(), { type: blob.type }), 'image', progress);
   };
 
   

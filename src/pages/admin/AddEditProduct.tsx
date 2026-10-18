@@ -1,3 +1,5 @@
+import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
+import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +38,7 @@ export const AddEditProduct = () => {
       .single();
 
     if (product) {
+      rememberMediaRevision("products", product);
       setFormData({
         name: product.name,
         description: product.description || "",
@@ -47,6 +50,7 @@ export const AddEditProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع الملفات", variant: "destructive" }); return; }
 
     if (!formData.name || !formData.image_url) {
       toast({
@@ -57,6 +61,11 @@ export const AddEditProduct = () => {
       return;
     }
 
+    if (await mediaCapabilities()) {
+      try { await saveMediaRecord("products", id, formData); toast({ title: "تم الحفظ" }); navigate("/admin/products"); }
+      catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
+      return;
+    }
     if (id) {
       const { error } = await supabase
         .from("products")
