@@ -74,16 +74,16 @@ REVOKE ALL ON FUNCTION public.media_normalize(text) FROM PUBLIC,anon,authenticat
 
 CREATE OR REPLACE FUNCTION public.media_reference_guard()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE detached uuid[]; a record; payload text; source_id text;
+DECLARE detached uuid[]; a record; payload text; v_source_id text;
 BEGIN
   PERFORM pg_advisory_xact_lock(771829461);
   IF TG_OP <> 'INSERT' THEN
-    source_id := to_jsonb(OLD)->>'id';
-    SELECT array_agg(asset_id) INTO detached FROM media_references WHERE source_table=TG_TABLE_NAME AND media_references.source_id=source_id;
-    DELETE FROM media_references r WHERE r.source_table=TG_TABLE_NAME AND r.source_id=source_id;
+    v_source_id := to_jsonb(OLD)->>'id';
+    SELECT array_agg(asset_id) INTO detached FROM media_references WHERE source_table=TG_TABLE_NAME AND media_references.source_id=v_source_id;
+    DELETE FROM media_references r WHERE r.source_table=TG_TABLE_NAME AND r.source_id=v_source_id;
   END IF;
   IF TG_OP <> 'DELETE' THEN
-    source_id := to_jsonb(NEW)->>'id';
+    v_source_id := to_jsonb(NEW)->>'id';
     -- Fail closed for ambiguous writes only when a tombstone exists. During
     -- rollout ambiguous legacy text may save, but claims always fail closed.
     BEGIN payload := media_normalize(to_jsonb(NEW)::text);
@@ -94,7 +94,7 @@ BEGIN
     FOR a IN SELECT * FROM media_assets ORDER BY id FOR UPDATE LOOP
       IF strpos(payload, media_normalize(a.object_key)) > 0 THEN
         IF a.state IN ('uploading','deleting','deleted') THEN RAISE EXCEPTION 'media_unavailable'; END IF;
-        INSERT INTO media_references VALUES(a.id,TG_TABLE_NAME,source_id) ON CONFLICT DO NOTHING;
+        INSERT INTO media_references VALUES(a.id,TG_TABLE_NAME,v_source_id) ON CONFLICT DO NOTHING;
         UPDATE media_assets SET lease_until=now() WHERE id=a.id;
       END IF;
     END LOOP;
