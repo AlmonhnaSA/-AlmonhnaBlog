@@ -78,8 +78,8 @@ BEGIN
     END LOOP;
   END IF;
   INSERT INTO public.media_jobs(asset_id)
-    SELECT id FROM public.media_assets a WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = a.id)
-    AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = a.id AND j.status = 'preview');
+    SELECT asset_row.id FROM public.media_assets asset_row WHERE NOT EXISTS(SELECT 1 FROM public.media_references r WHERE r.asset_id = asset_row.id)
+    AND NOT EXISTS(SELECT 1 FROM public.media_jobs j WHERE j.asset_id = asset_row.id AND j.status = 'preview');
   INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),TG_OP || ':' || TG_TABLE_NAME,'committed');
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
   RETURN NEW;
