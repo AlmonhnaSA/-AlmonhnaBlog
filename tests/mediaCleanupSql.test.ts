@@ -91,3 +91,21 @@ test("legacy inventory registers image files but audio stays excluded and unrevi
     expect(r.rows).toEqual([{object_key:"user/legacy.png",deletion_reviewed:false}]);
   }finally{await db.close();}
 },30000);
+test("expired worker token cannot finish a reclaimed job",async()=>{
+  const db=await setup();try{
+    await db.query("INSERT INTO products(id,image_url) VALUES($1,$2)",[first,oldUrl]);
+    const r=await replace(db);const initial=await claim(db,r);if(!initial)throw Error("missing first claim");
+    await db.query("UPDATE media_assets SET worker_until=now()-interval '1 second' WHERE id=$1",[asset]);
+    const reclaimed=await claim(db,r);if(!reclaimed)throw Error("missing second claim");
+    expect(reclaimed.token).not.toBe(initial.token);
+    await expect(db.query("SELECT media_cleanup_finish($1,$2,true)",[asset,initial.token])).rejects.toThrow("claim_conflict");
+    await db.query("SELECT media_cleanup_finish($1,$2,true)",[asset,reclaimed.token]);
+  }finally{await db.close();}
+},30000);
+test("image-named tables cannot hide from source coverage",async()=>{
+  const db=await setup();try{
+    await db.query("INSERT INTO products(id,image_url) VALUES($1,$2)",[first,oldUrl]);const r=await replace(db);
+    await db.exec("CREATE TABLE media_custom_content(id uuid,body text)");
+    expect(await claim(db,r)).toBeNull();
+  }finally{await db.close();}
+},30000);

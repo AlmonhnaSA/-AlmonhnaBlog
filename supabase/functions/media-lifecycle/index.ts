@@ -86,6 +86,10 @@ Deno.serve(async req => {
         const result = await caller.from(body.table).select("*").eq("id", data.id).single();
         readback = result.data;
         if (result.error || !readback) return respond({ error: "readback_failed_old_files_retained" }, 409);
+        if (readback.updated_at !== data.updated_at) return respond({ row: readback, cleanup: "retained_concurrent_revision" });
+      } else {
+        const { data: remaining, error: deleteReadError } = await caller.from(body.table).select("id").eq("id", data.id).maybeSingle();
+        if (deleteReadError || remaining) return respond({ ...data, cleanup: "retained_delete_readback_unconfirmed" });
       }
       // Only a committed, verified operation can issue cleanup authority.
       // Cleanup failures never make a saved record appear to have failed.
