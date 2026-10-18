@@ -136,12 +136,9 @@ BEGIN
       EXECUTE format('INSERT INTO public.%I (%s) SELECT %s FROM jsonb_populate_record(NULL::public.%I,$1)',child,attrs,attrs,child) USING row_value;
     END LOOP;
   END LOOP;
-  INSERT INTO public.media_audit(actor_id,operation,outcome) VALUES(auth.uid(),'save:'||p_table,'committed');
   RETURN result;
 END $$;
--- The caller-scoped RPC needs audit INSERT without permitting forged records:
--- remove the INSERT above; auditing is performed by the trusted endpoint.
--- See replacement below for audit writer separate from caller's transaction.
+-- Audit commits are recorded by the privileged reference trigger, not a client.
 GRANT EXECUTE ON FUNCTION public.media_save(text,uuid,jsonb,jsonb,timestamptz) TO authenticated;
 REVOKE ALL ON FUNCTION public.media_save(text,uuid,jsonb,jsonb,timestamptz) FROM PUBLIC, anon;
 

@@ -4,7 +4,7 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { compressImage } from "@/lib/imageOptimizer";
+import { uploadMedia } from "@/lib/mediaUploads";
 import { FileText, ImagePlus, X, ArrowUp, ArrowDown } from "lucide-react";
 
 export const MAX_GALLERY_IMAGES = 20;
@@ -19,10 +19,8 @@ interface Props {
 }
 
 const uploadBlob = async (userId: string, blob: Blob, ext: string) => {
-  const name = `${userId}/gallery/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase.storage.from("images").upload(name, blob, { contentType: blob.type });
-  if (error) throw error;
-  return supabase.storage.from("images").getPublicUrl(name).data.publicUrl;
+  const file = new File([blob], `gallery-${crypto.randomUUID()}.${ext}`, { type: blob.type });
+  return uploadMedia(file, blob.type === "application/pdf" ? "gallery-pdf" : "image");
 };
 
 const pdfToImages = async (file: File, max: number, onProgress: (p: string) => void) => {
@@ -39,8 +37,12 @@ const pdfToImages = async (file: File, max: number, onProgress: (p: string) => v
     const canvas = document.createElement("canvas");
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
-    blobs.push(await new Promise<Blob>((r) => canvas.toBlob((b) => r(b!), "image/jpeg", 0.85)));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("تعذّر تحويل الصفحة");
+    await page.render({ canvasContext: context, viewport }).promise;
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
+    if (!blob) throw new Error("تعذّر تحويل الصفحة");
+    blobs.push(blob);
   }
   return blobs;
 };
@@ -71,7 +73,7 @@ export const GalleryUpload = ({ images, onImagesChange, title, onTitleChange, pd
       for (let i = 0; i < list.length; i++) {
         if (list[i].size > 5 * 1024 * 1024) continue;
         setBusy(`رفع الصورة ${i + 1} من ${list.length}...`);
-        const f = await compressImage(list[i]);
+        const f = list[i];
         urls.push(await uploadBlob(uid, f, f.name.split(".").pop() || "jpg"));
       }
       onImagesChange([...images, ...urls]);
@@ -103,7 +105,7 @@ export const GalleryUpload = ({ images, onImagesChange, title, onTitleChange, pd
       const urls: string[] = [];
       for (let i = 0; i < blobs.length; i++) {
         setBusy(`رفع الصفحة ${i + 1} من ${blobs.length}...`);
-        urls.push(await uploadBlob(uid, blobs[i], "jpg"));
+        urls.push(await uploadBlob(uid, blobs[i], "png"));
       }
       onImagesChange([...images, ...urls]);
       onPdfUrlChange(fileUrl);
