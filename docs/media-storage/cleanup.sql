@@ -136,7 +136,7 @@ BEGIN
     SELECT * INTO a FROM media_assets WHERE id=j.asset_id FOR UPDATE;
     IF a.state='deleted' THEN UPDATE media_jobs SET status='done' WHERE id=j.id; CONTINUE; END IF;
     IF a.state='deleting' AND a.worker_until>now() THEN CONTINUE; END IF;
-    IF NOT a.deletion_reviewed OR a.provider <> 'supabase' OR a.bucket NOT IN ('images','store-files') OR a.mime NOT LIKE 'image/%' OR a.object_key ~* '(^|/)(audio|episodes)(/|$)|\.(mp3|m4a|aac|wav|ogg|opus|flac|aiff)$'
+    IF NOT a.deletion_reviewed OR a.provider NOT IN ('supabase','r2') OR (a.provider='r2' AND (a.bucket<>'images' OR a.object_key !~ '^[0-9a-f-]+/media/[0-9a-f-]+\.[a-z]+$')) OR a.bucket NOT IN ('images','store-files') OR a.mime NOT LIKE 'image/%' OR a.object_key ~* '(^|/)(audio|episodes)(/|$)|\.(mp3|m4a|aac|wav|ogg|opus|flac|aiff)$'
       OR a.lease_until>now() OR a.state NOT IN ('ready','deleting')
       OR EXISTS(SELECT 1 FROM media_protections WHERE asset_id=a.id) THEN CONTINUE; END IF;
     hits := 0;

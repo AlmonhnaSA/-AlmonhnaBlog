@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateMediaUpload, UUID } from "../_shared/mediaValidation.ts";
 import { drainMediaCleanup, PHYSICAL_DELETE_ENABLED, type DeletionClaim } from "../_shared/mediaCleanup.ts";
 import { cloudImageProvider } from "./storageProvider.ts";
+import { r2ImageProvider } from "./r2Provider.ts";
 
 // STAGED: no deploy under the current approval. Deletion cannot be enabled
 // with a frontend flag, request, or secret. Requires separate reviewed release.
@@ -42,7 +43,7 @@ Deno.serve(async req => {
           return data as DeletionClaim | null;
         },
         finish: claim => finish(claim, true), failure: claim => finish(claim, false),
-      }, { supabase: cloudImageProvider(admin) });
+      }, { supabase: cloudImageProvider(admin), ...(Deno.env.get("R2_IMAGES_ENABLED") === "true" ? { r2: r2ImageProvider(name => Deno.env.get(name)).cleanup } : {}) });
     };
     if (body.action === "capabilities") {
       const { error } = await admin.from("media_assets").select("id,provider,deletion_reviewed,deletion_token").limit(1);
@@ -53,9 +54,12 @@ Deno.serve(async req => {
       if (validated.bucket === "store-files" && !role) return respond({ error: "forbidden" }, 403);
       const id = crypto.randomUUID();
       const path = `${user.id}/media/${id}.${validated.extension}`;
-      const { error } = await admin.from("media_assets").insert({ id, owner_id: user.id, bucket: validated.bucket, object_key: path, bytes: body.size, mime: body.type, deletion_reviewed: /^image\//.test(body.type) });
+      const useR2 = body.purpose === "image" && Deno.env.get("R2_IMAGES_ENABLED") === "true";
+      const provider = useR2 ? r2ImageProvider(name => Deno.env.get(name)) : null;
+      const { error } = await admin.from("media_assets").insert({ id, owner_id: user.id, bucket: validated.bucket, provider: useR2 ? "r2" : "supabase", object_key: path, bytes: body.size, mime: body.type, deletion_reviewed: /^image\//.test(body.type) });
       if (error) return respond({ error: "registry_unavailable" }, 503);
       await audit("upload_reserved", "registered", id);
+      if (provider) return respond({ id, bucket: validated.bucket, path, ...(await provider.sign(path, body.type)) });
       const { data: signed, error: signError } = await admin.storage.from(validated.bucket).createSignedUploadUrl(path, { upsert: false });
       if (signError || !signed) return respond({ error: "sign_failed" }, 502);
       return respond({ id, bucket: validated.bucket, path, token: signed.token });
@@ -64,12 +68,18 @@ Deno.serve(async req => {
       if (!UUID.test(body.id || "")) return respond({ error: "invalid_id" }, 400);
       const { data: asset, error } = await admin.from("media_assets").select("*").eq("id", body.id).eq("owner_id", user.id).single();
       if (error || !asset || asset.state !== "uploading") return respond({ error: "unknown_upload" }, 409);
-      const { data: info, error: infoError } = await admin.storage.from(asset.bucket).info(asset.object_key);
-      if (infoError || Number(info?.size) !== Number(asset.bytes) || info?.contentType !== asset.mime) return respond({ error: "verification_failed" }, 409);
+      const provider = asset.provider === "r2" ? r2ImageProvider(name => Deno.env.get(name)) : null;
+      if (provider) {
+        const info = await provider.head(asset.object_key);
+        if (!info.ok || Number(info.headers.get("content-length")) !== Number(asset.bytes) || info.headers.get("content-type") !== asset.mime) return respond({ error: "verification_failed" }, 409);
+      } else {
+        const { data: info, error: infoError } = await admin.storage.from(asset.bucket).info(asset.object_key);
+        if (infoError || Number(info?.size) !== Number(asset.bytes) || info?.contentType !== asset.mime) return respond({ error: "verification_failed" }, 409);
+      }
       const { data: verified, error: updateError } = await admin.from("media_assets").update({ state: "ready" }).eq("id", asset.id).eq("state", "uploading").select("id").single();
       if (updateError || !verified) return respond({ error: "verification_failed" }, 409);
       await audit("upload_verified", "ready", asset.id);
-      return respond({ url: admin.storage.from(asset.bucket).getPublicUrl(asset.object_key).data.publicUrl });
+      return respond({ url: provider ? provider.publicUrl(asset.object_key) : admin.storage.from(asset.bucket).getPublicUrl(asset.object_key).data.publicUrl });
     }
     if (body.action === "save" || body.action === "delete") {
       if (Deno.env.get("MEDIA_MUTATIONS_VALIDATED") !== "true") return respond({ error: "mutations_not_approved" }, 503);
