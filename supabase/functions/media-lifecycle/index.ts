@@ -100,8 +100,18 @@ Deno.serve(async req => {
     if (body.action === "cleanup" || body.action === "preview") {
       if (!role) return respond({ error: "forbidden" }, 403);
       if (PHYSICAL_DELETE_ENABLED && body.action === "cleanup") {
-        if (!UUID.test(body.receipt || "")) return respond({ error: "invalid_receipt" }, 400);
-        return respond(await cleanup(body.receipt));
+        if (body.receipt !== undefined) {
+          if (!UUID.test(body.receipt || "")) return respond({ error: "invalid_receipt" }, 400);
+          return respond(await cleanup(body.receipt));
+        }
+        // Admin-only scheduled retry; no browser-supplied asset/key authority.
+        const { data: jobs, error } = await admin.from("media_jobs").select("receipt")
+          .in("status", ["preview", "retry", "deleting"]).not("receipt", "is", null)
+          .lte("next_attempt_at", new Date().toISOString()).order("created_at").limit(100);
+        if (error) return respond({ error: "queue_unavailable" }, 503);
+        const results = [];
+        for (const receipt of new Set((jobs || []).map(job => job.receipt as string))) results.push(await cleanup(receipt));
+        return respond({ results });
       }
       await audit("cleanup", "blocked_preview_only");
       return respond({ dryRun: true, physicalDelete: false, blocked: ["independent_inventory_and_backfill_required", "encoded_reference_fencing_review_required", "external_protection_review_required", "separate_deletion_approval_required"], deleted: 0 });
