@@ -124,7 +124,7 @@ useEffect(() => {
   if (!episodes.length) return null;
 
   return (
-    <section id="audio-section" id="masmoo3" className="audio-section">
+    <section id="masmoo3" className="audio-section">
       <div className="container mx-auto px-6">
 
         <Reveal variant="clip">
