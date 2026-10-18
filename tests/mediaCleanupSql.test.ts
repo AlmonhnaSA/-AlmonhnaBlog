@@ -109,3 +109,32 @@ test("image-named tables cannot hide from source coverage",async()=>{
     expect(await claim(db,r)).toBeNull();
   }finally{await db.close();}
 },30000);
+test("gallery removal cleans only removed references after successful save",async()=>{
+  const db=await setup();try{
+    await db.query("INSERT INTO news(id,gallery_images,content) VALUES($1,$2::jsonb,'')",[first,JSON.stringify([oldUrl])]);
+    const r=await db.query<{value:{cleanup_txid:string}}>("SELECT media_save('news',$1,'{\"gallery_images\":[]}','{}',(SELECT updated_at FROM news WHERE id=$1)) value",[first]);
+    expect((await claim(db,await receipt(db,r.rows[0].value.cleanup_txid)))?.asset_id).toBe(asset);
+  }finally{await db.close();}
+},30000);
+test("product deletion collects child images but audio files remain protected",async()=>{
+  const db=await setup();try{
+    await db.query("INSERT INTO store_products(id,image_url) VALUES($1,'other.png')",[first]);
+    await db.query("INSERT INTO store_product_images(store_product_id,image_url) VALUES($1,$2)",[first,oldUrl]);
+    const r=await db.query<{value:{cleanup_txid:string}}>("SELECT media_delete('store_products',$1,(SELECT updated_at FROM store_products WHERE id=$1)) value",[first]);
+    expect((await claim(db,await receipt(db,r.rows[0].value.cleanup_txid)))?.asset_id).toBe(asset);
+  }finally{await db.close();}
+},30000);
+test("staged storage policies deny client delete overwrite and tombstone reuse",async()=>{
+  const db=await setup();try{
+    await db.exec(`GRANT USAGE ON SCHEMA storage TO authenticated;
+      GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated;
+      ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY storage_all ON storage.objects FOR ALL TO authenticated USING(true) WITH CHECK(true);
+      INSERT INTO storage.objects VALUES('images','user/old.png','{}');`);
+    await db.exec(await readFile("docs/media-storage/storage-policies.sql","utf8"));
+    await db.exec("SET ROLE authenticated");
+    await db.exec("DELETE FROM storage.objects WHERE name='user/old.png'; UPDATE storage.objects SET name='changed.png' WHERE name='user/old.png'");
+    expect((await db.query<{name:string}>("SELECT name FROM storage.objects")).rows).toEqual([{name:"user/old.png"}]);
+    await expect(db.exec("INSERT INTO storage.objects VALUES('images','user/old.png','{}')")).rejects.toThrow("row-level security");
+  }finally{await db.close();}
+},30000);
