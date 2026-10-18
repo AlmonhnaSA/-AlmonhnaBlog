@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 export type MediaTable = "articles" | "news" | "products" | "store_products" | "profiles" | "timelines" | "audio_episodes";
 const revisions = new Map<string, string>();
 let capability: Promise<boolean> | undefined;
+let capabilityUntil = 0;
 export function rememberMediaRevision(table: MediaTable, row: { id: string; updated_at?: string }) {
   if (row.updated_at) revisions.set(`${table}:${row.id}`, row.updated_at);
 }
 export async function mediaCapabilities(): Promise<boolean> {
+  if (Date.now() > capabilityUntil) { capability = undefined; capabilityUntil = Date.now() + 30000; }
   capability ??= supabase.functions.invoke("media-lifecycle", { body: { action: "capabilities" } }).then(({ data, error }) => !error && data?.version === 1 && data?.mutations === true).catch(() => false);
   return capability;
 }

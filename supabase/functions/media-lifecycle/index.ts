@@ -90,7 +90,9 @@ Deno.serve(async req => {
       await audit(`${body.action}:${body.table}`, "requested");
       const { data, error } = await caller.rpc(name, args);
       if (error || !data) { await audit(`${body.action}:${body.table}`, "rejected"); return respond({ error: "save_delete_conflict_or_forbidden" }, 409); }
-      await audit(`${body.action}:${body.table}`, "committed");
+      // Trigger audit commits atomically with the row. Do not report failed save
+      // if this supplementary audit is unavailable after the commit.
+      try { await audit(`${body.action}:${body.table}`, "committed"); } catch { /* retained jobs */ }
       let readback: Record<string, unknown> | null = null;
       if (body.action === "save") {
         const result = await caller.from(body.table).select("*").eq("id", data.id).single();

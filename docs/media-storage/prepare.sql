@@ -116,6 +116,12 @@ BEGIN
   IF EXISTS(SELECT 1 FROM jsonb_object_keys(p_values) k WHERE k IN ('id','user_id','created_at','updated_at','approved_at')) THEN RAISE EXCEPTION 'protected_field'; END IF;
   IF NOT public.has_role(auth.uid(), 'admin') AND p_table IN ('articles','news') THEN
     IF p_values->>'status' IS DISTINCT FROM 'pending' THEN RAISE EXCEPTION 'writer_status_required'; END IF;
+    IF p_values ? 'author_id' AND NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=(p_values->>'author_id')::uuid AND user_id=auth.uid()) THEN RAISE EXCEPTION 'author_forbidden'; END IF;
+  END IF;
+  IF p_table='profiles' AND EXISTS(SELECT 1 FROM jsonb_object_keys(p_values) k WHERE k NOT IN ('name','phone','bio','photo_url','linkedin_url','twitter_url')) THEN RAISE EXCEPTION 'protected_profile_field'; END IF;
+  IF p_table='profiles' AND p_id IS NULL THEN RAISE EXCEPTION 'profile_creation_not_supported'; END IF;
+  IF p_table='audio_episodes' AND p_values->>'is_featured'='true' THEN
+    UPDATE public.audio_episodes SET is_featured=false WHERE id IS DISTINCT FROM p_id AND is_featured;
   END IF;
   SELECT string_agg(format('%I', k), ',') INTO cols FROM jsonb_object_keys(p_values) k;
   IF cols IS NULL THEN RAISE EXCEPTION 'empty_values'; END IF;
