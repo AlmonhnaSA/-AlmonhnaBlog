@@ -1,6 +1,6 @@
 # Project decisions
 
-- Use mediaUploads for non-audio uploads; activate transactional media mutations only after server validation, retaining checked legacy operations without file cleanup until deployment approval.
+- Use mediaUploads for original non-audio bytes; isolate image R2 credentials/worker and opt-in legacy display fallback; keep mutations/deletion gated pending independent validation.
 - Keep inventory credentials local and require explicit project binding/full visibility; unmatched files are advisory, never deletion authority.
 - Stage media SQL/Storage policies in docs; use verified transaction receipts, fresh full-reference checks, durable tombstones and provider adapters. Keep deletion disabled until independent-backend validation and separate approval.
 

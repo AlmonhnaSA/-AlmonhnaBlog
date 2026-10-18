@@ -83,6 +83,13 @@ const ManageTimelines = () => {
     e.preventDefault();
     if (!newTitle.trim()) return;
     const { data: first } = await supabase.from("timelines").select("display_order").order("display_order").limit(1).maybeSingle();
+    if (await mediaCapabilities()) {
+      try {
+        const created = await saveMediaRecord("timelines", undefined, { title: newTitle.trim(), display_order: (first?.display_order ?? 0) - 1 });
+        setNewTitle(""); setOpenId(created.id); load();
+      } catch { toast({ title: "تعذّرت الإضافة", variant: "destructive" }); }
+      return;
+    }
     const { data, error } = await supabase
       .from("timelines")
       .insert({ title: newTitle.trim(), display_order: (first?.display_order ?? 0) - 1 })

@@ -95,6 +95,13 @@ const ManageAudioEpisodes = () => {
       .order("display_order")
       .limit(1)
       .maybeSingle();
+    if (await mediaCapabilities()) {
+      try {
+        const created = await saveMediaRecord("audio_episodes", undefined, { title: newTitle.trim(), audio_url: "", display_order: (first?.display_order ?? 0) - 1 });
+        setNewTitle(""); setOpenId(created.id); load();
+      } catch { toast({ title: "تعذّرت الإضافة", variant: "destructive" }); }
+      return;
+    }
     const { data, error } = await supabase
       .from("audio_episodes")
       .insert({ title: newTitle.trim(), audio_url: "", display_order: (first?.display_order ?? 0) - 1 })
@@ -111,7 +118,7 @@ const ManageAudioEpisodes = () => {
 
   const save = async (t: Episode) => {
     if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع صورة الحلقة", variant: "destructive" }); return; }
-    if (t.is_featured) {
+    if (t.is_featured && !(await mediaCapabilities())) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }
     if (!t.audio_url.trim()) {

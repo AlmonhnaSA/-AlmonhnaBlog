@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { compressImage } from "./imageOptimizer";
 import { validateMediaUpload } from "../../supabase/functions/_shared/mediaValidation";
 import { mediaCapabilities } from "./mediaMutations";
 
@@ -9,7 +8,8 @@ export async function uploadMedia(file: File, purpose: "image" | "gallery-pdf" |
   activeUploads++;
   try {
     if (purpose !== "attachment") validateMediaUpload({ size: file.size, type: file.type, purpose });
-    const optimized = purpose === "image" ? await compressImage(file) : file;
+    // Preserve uploaded originals byte-for-byte; transformations are display-only.
+    const optimized = file;
     if (!(await mediaCapabilities())) {
       // Existing preview remains usable until the separately approved deployment.
       // Never deletes old files and never enables cleanup on this legacy path.
@@ -24,9 +24,17 @@ export async function uploadMedia(file: File, purpose: "image" | "gallery-pdf" |
       return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
     }
     const { data: ticket, error } = await supabase.functions.invoke("media-lifecycle", { body: { action: "sign", type: optimized.type || "application/octet-stream", size: optimized.size, purpose } });
-    if (error || !ticket?.token || !ticket?.path || !ticket?.bucket || !ticket?.id) throw new Error("الرفع الآمن ينتظر تفعيل الخدمة؛ لم تُغيّر الملفات القديمة.");
-    const { error: uploadError } = await supabase.storage.from(ticket.bucket).uploadToSignedUrl(ticket.path, ticket.token, optimized, { contentType: optimized.type, upsert: false });
-    if (uploadError) throw new Error("فشل رفع الملف الجديد");
+    if (error || !ticket?.path || !ticket?.bucket || !ticket?.id) throw new Error("الرفع الآمن ينتظر تفعيل الخدمة؛ لم تُغيّر الملفات القديمة.");
+    if (ticket.uploadUrl) {
+      const target = new URL(ticket.uploadUrl);
+      if (target.protocol !== "https:" || !target.hostname.endsWith(".r2.cloudflarestorage.com")) throw new Error("رابط رفع غير صالح");
+      const result = await fetch(target, { method: "PUT", headers: ticket.headers, body: optimized });
+      if (!result.ok) throw new Error("فشل رفع الصورة الجديدة");
+    } else {
+      if (!ticket.token) throw new Error("تعذّر توقيع الرفع");
+      const { error: uploadError } = await supabase.storage.from(ticket.bucket).uploadToSignedUrl(ticket.path, ticket.token, optimized, { contentType: optimized.type, upsert: false });
+      if (uploadError) throw new Error("فشل رفع الملف الجديد");
+    }
     progress?.(90);
     const { data: verified, error: verifyError } = await supabase.functions.invoke("media-lifecycle", { body: { action: "verify", id: ticket.id } });
     if (verifyError || !verified?.url) throw new Error("تعذّر التحقق من الرفع؛ لا تحفظ حتى ينجح التحقق.");
