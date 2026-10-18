@@ -70,7 +70,7 @@ BEGIN
     -- Encoded legacy references are reviewed by the full read-only scanner.
     FOR a IN SELECT * FROM public.media_assets ORDER BY id FOR UPDATE LOOP
       IF strpos(payload, a.object_key) > 0 THEN
-        IF a.state IN ('deleting', 'deleted') THEN RAISE EXCEPTION 'media_unavailable'; END IF;
+        IF a.state IN ('uploading', 'deleting', 'deleted') THEN RAISE EXCEPTION 'media_unavailable'; END IF;
         INSERT INTO public.media_references(asset_id, source_table, source_id)
         VALUES (a.id, TG_TABLE_NAME, new_id) ON CONFLICT DO NOTHING;
         UPDATE public.media_assets SET state = 'ready', lease_until = now() WHERE id = a.id;
