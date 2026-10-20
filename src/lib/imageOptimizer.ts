@@ -1,11 +1,9 @@
-import { resolveImageUrl } from "./imageUrl";
-const relocated = (url: string) => resolveImageUrl(url, import.meta.env.VITE_IMAGE_BASE_URL, import.meta.env.VITE_IMAGE_SOURCE_PROJECT);
 // Serves smaller, compressed versions of Cloud Storage images everywhere,
 // without changing markup. Originals are untouched; on any error the image
 // falls back to the original URL.
 const OBJ = "/storage/v1/object/public/";
 const RENDER = "/storage/v1/render/image/public/";
-const WIDTHS = [96, 192, 320, 480, 640, 960, 1280, 1600];
+const WIDTHS = [96, 192, 320, 480, 640, 960, 1280, 1600, 1920];
 
 const canOptimize = (url: string) =>
   typeof url === "string" &&
@@ -13,9 +11,13 @@ const canOptimize = (url: string) =>
   !/\.(gif|svg)(\?|$)/i.test(url) &&
   !url.includes("/render/image/");
 
+// Larger renders keep more detail: small thumbnails stay light, while
+// images displayed at full column/cover size use a higher quality.
+const qualityFor = (w: number) => (w >= 960 ? 85 : w >= 480 ? 80 : 72);
+
 const variant = (url: string, w: number) => {
   const base = url.replace(OBJ, RENDER);
-  return `${base}${base.includes("?") ? "&" : "?"}width=${w}&quality=72&resize=contain`;
+  return `${base}${base.includes("?") ? "&" : "?"}width=${w}&quality=${qualityFor(w)}&resize=contain`;
 };
 
 export const optimizedSrc = (url: string, w = 960) => (canOptimize(url) ? variant(url, w) : url);
@@ -48,25 +50,25 @@ export const installImageOptimizer = () => {
     // a candidate; otherwise tiny portraits request desktop-size covers first.
     requestAnimationFrame(() => {
       if (originals.get(img) !== url) return;
-      const moved = relocated(url);
-      if (moved !== url) {
-        img.removeAttribute("srcset");
-        nativeSet.call(img, "src", moved);
-        return;
-      }
       if (!img.hasAttribute("sizes")) autoSizes.add(img);
       updateSize(img);
       if (!img.hasAttribute("srcset") || autoSrcSets.has(img)) {
         autoSrcSets.add(img);
         nativeSet.call(img, "srcset", WIDTHS.map((w) => `${variant(url, w)} ${w}w`).join(", "));
       }
-      nativeSet.call(img, "src", variant(url, 960));
+      nativeSet.call(img, "src", variant(url, 1280));
       if (autoSizes.has(img)) resizeObserver.observe(img);
+      // Layout (sliders, galleries, fonts) can settle after the first frame;
+      // re-measure so a large image never stays stuck on a small candidate.
+      requestAnimationFrame(() => {
+        if (originals.get(img) === url) updateSize(img);
+      });
+      img.addEventListener("load", () => updateSize(img), { once: true });
     });
   };
 
   Element.prototype.setAttribute = function (name: string, value: string) {
-    if (this instanceof HTMLImageElement && name === "src" && (canOptimize(value) || relocated(value) !== value)) {
+    if (this instanceof HTMLImageElement && name === "src" && canOptimize(value)) {
       apply(this, value);
       return;
     }
@@ -90,7 +92,7 @@ export const installImageOptimizer = () => {
       enumerable: desc.enumerable,
       get() { return getSrc.call(this); },
       set(v: string) {
-        if (canOptimize(v) || relocated(v) !== v) apply(this, v);
+        if (canOptimize(v)) apply(this, v);
         else {
           originals.delete(this);
           resizeObserver.unobserve(this);

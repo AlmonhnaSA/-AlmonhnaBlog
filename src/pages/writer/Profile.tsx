@@ -1,5 +1,3 @@
-import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
-import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -38,7 +36,6 @@ export const WriterProfile = () => {
       .single();
 
     if (profile) {
-      rememberMediaRevision("profiles", profile);
       setFormData({
         name: profile.name || "",
         email: profile.email || "",
@@ -53,7 +50,6 @@ export const WriterProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع الملفات", variant: "destructive" }); return; }
     setLoading(true);
 
     // Validate bio length
@@ -68,18 +64,8 @@ export const WriterProfile = () => {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+    if (!user) return;
 
-    if (await mediaCapabilities()) {
-      const { data: current } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-      try {
-        if (!current) throw new Error("missing_profile");
-        const { email, ...values } = formData;
-        await saveMediaRecord("profiles", current.id, values);
-        toast({ title: "تم الحفظ" });
-      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
-      setLoading(false); return;
-    }
     const { error } = await supabase
       .from("profiles")
       .update({

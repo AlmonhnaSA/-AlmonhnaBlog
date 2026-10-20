@@ -278,13 +278,12 @@ export const loadArticleExtras = async (articleId: string): Promise<ArticleExtra
 
 /** Replaces the saved relations for an article. */
 export const saveArticleExtras = async (articleId: string, extras: ArticleExtrasValue) => {
-  const removed = await Promise.all([
+  await Promise.all([
     supabase.from("article_categories").delete().eq("article_id", articleId),
     supabase.from("article_knowledge_links").delete().eq("article_id", articleId),
     supabase.from("article_continuations").delete().eq("article_id", articleId),
   ]);
 
-  for (const result of removed) if (result.error) throw result.error;
   const tasks: Promise<any>[] = [];
 
   if (extras.categoryIds.length) {
@@ -321,8 +320,7 @@ export const saveArticleExtras = async (articleId: string, extras: ArticleExtras
     );
   }
 
-  const inserted = await Promise.all(tasks);
-  for (const result of inserted) if (result.error) throw result.error;
+  await Promise.all(tasks);
 };
 
 export default ArticleExtras;

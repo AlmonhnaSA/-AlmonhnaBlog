@@ -1,5 +1,3 @@
-import { mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
-import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +73,6 @@ export const AddEditArticle = () => {
         .single();
 
       if (article) {
-      rememberMediaRevision("articles", article);
         setArticleStatus(article.status);
         setFormData({
           title: article.title,
@@ -98,7 +95,6 @@ export const AddEditArticle = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع الملفات", variant: "destructive" }); return; }
 
     if (!formData.title || !formData.excerpt || !formData.cover_image_url) {
       toast({
@@ -119,18 +115,6 @@ export const AddEditArticle = () => {
       sequence_points: sequence.length >= 3 ? sequence.slice(0, 5) : [],
     };
 
-    if (await mediaCapabilities()) {
-      try {
-        await saveMediaRecord("articles", id, articleData, {
-          article_categories: extras.categoryIds.map(category_id => ({ category_id })),
-          article_knowledge_links: extras.knowledgeLinks.filter(l => l.target_article_id).map(l => ({ anchor_key: l.anchor_key, question: l.question, target_article_id: l.target_article_id })),
-          article_continuations: extras.continuationIds.slice(0, 3).map((target_article_id, display_order) => ({ target_article_id, display_order })),
-        });
-        toast({ title: "تم الحفظ" }); navigate("/writer/articles");
-      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
-      return;
-    }
-
     if (id) {
       const { error } = await supabase
         .from("articles")
@@ -146,8 +130,7 @@ export const AddEditArticle = () => {
         return;
       }
 
-      try { await saveArticleExtras(id, extras); }
-      catch { toast({ title: "حُفظ المقال لكن تعذّر حفظ روابطه؛ راجعه قبل المتابعة", variant: "destructive" }); return; }
+      await saveArticleExtras(id, extras);
 
       toast({
         title: "تم التحديث",
@@ -169,8 +152,7 @@ export const AddEditArticle = () => {
         return;
       }
 
-      try { if (inserted?.id) await saveArticleExtras(inserted.id, extras); }
-      catch { toast({ title: "حُفظ المقال لكن تعذّر حفظ روابطه؛ راجعه قبل المتابعة", variant: "destructive" }); return; }
+      if (inserted?.id) await saveArticleExtras(inserted.id, extras);
 
       toast({
         title: "تم الإضافة",

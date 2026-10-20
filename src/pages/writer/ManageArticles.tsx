@@ -1,4 +1,3 @@
-import { deleteMediaRecord } from "@/lib/mediaMutations";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -60,7 +59,7 @@ export const ManageArticles = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا المقال؟")) return;
 
-    const { error } = await deleteMediaRecord("articles", id);
+    const { error } = await supabase.from("articles").delete().eq("id", id);
 
     if (error) {
       toast({ title: "خطأ", description: "حدث خطأ أثناء حذف المقال", variant: "destructive" });
