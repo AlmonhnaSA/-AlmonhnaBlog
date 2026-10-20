@@ -1,5 +1,3 @@
-import { resolveImageUrl } from "./imageUrl";
-const relocated = (url: string) => resolveImageUrl(url, import.meta.env.VITE_IMAGE_BASE_URL, import.meta.env.VITE_IMAGE_SOURCE_PROJECT);
 // Serves smaller, compressed versions of Cloud Storage images everywhere,
 // without changing markup. Originals are untouched; on any error the image
 // falls back to the original URL.
@@ -48,12 +46,6 @@ export const installImageOptimizer = () => {
     // a candidate; otherwise tiny portraits request desktop-size covers first.
     requestAnimationFrame(() => {
       if (originals.get(img) !== url) return;
-      const moved = relocated(url);
-      if (moved !== url) {
-        img.removeAttribute("srcset");
-        nativeSet.call(img, "src", moved);
-        return;
-      }
       if (!img.hasAttribute("sizes")) autoSizes.add(img);
       updateSize(img);
       if (!img.hasAttribute("srcset") || autoSrcSets.has(img)) {
@@ -66,7 +58,7 @@ export const installImageOptimizer = () => {
   };
 
   Element.prototype.setAttribute = function (name: string, value: string) {
-    if (this instanceof HTMLImageElement && name === "src" && (canOptimize(value) || relocated(value) !== value)) {
+    if (this instanceof HTMLImageElement && name === "src" && canOptimize(value)) {
       apply(this, value);
       return;
     }
@@ -90,7 +82,7 @@ export const installImageOptimizer = () => {
       enumerable: desc.enumerable,
       get() { return getSrc.call(this); },
       set(v: string) {
-        if (canOptimize(v) || relocated(v) !== v) apply(this, v);
+        if (canOptimize(v)) apply(this, v);
         else {
           originals.delete(this);
           resizeObserver.unobserve(this);
@@ -127,8 +119,8 @@ export const compressImage = async (file: File, maxDim = 1920, quality = 0.85): 
     const bmp = await createImageBitmap(file);
     const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bmp.width * scale));
-    canvas.height = Math.max(1, Math.round(bmp.height * scale));
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
     const context = canvas.getContext("2d");
     if (!context) { bmp.close(); return file; }
     context.drawImage(bmp, 0, 0, canvas.width, canvas.height);

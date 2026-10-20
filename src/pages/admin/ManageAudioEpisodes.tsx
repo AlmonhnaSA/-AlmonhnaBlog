@@ -1,5 +1,3 @@
-import { deleteMediaRecord, mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
-import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +42,6 @@ const ManageAudioEpisodes = () => {
 
   const load = async () => {
     const { data } = await supabase.from("audio_episodes").select("*").order("display_order");
-    (data || []).forEach(row => rememberMediaRevision("audio_episodes", row));
     const mapped = (data || []).map((e: any) => ({
         id: e.id,
         title: e.title || "",
@@ -60,7 +57,7 @@ const ManageAudioEpisodes = () => {
     savedAudio.current = Object.fromEntries(mapped.map((e) => [e.id, e.audio_url]));
     // Reloading must not drop an upload that is still waiting to be saved.
     const pending = new Map(unsavedUploads().map((t) => [t.id, t.audio_url]));
-    setItems(mapped.map((e) => ({ ...e, audio_url: pending.get(e.id) ?? e.audio_url })));
+    setItems(mapped.map((e) => (pending.has(e.id) ? { ...e, audio_url: pending.get(e.id)! } : e)));
   };
 
   useEffect(() => {
@@ -95,13 +92,6 @@ const ManageAudioEpisodes = () => {
       .order("display_order")
       .limit(1)
       .maybeSingle();
-    if (await mediaCapabilities()) {
-      try {
-        const created = await saveMediaRecord("audio_episodes", undefined, { title: newTitle.trim(), audio_url: "", display_order: (first?.display_order ?? 0) - 1 });
-        setNewTitle(""); setOpenId(created.id); load();
-      } catch { toast({ title: "تعذّرت الإضافة", variant: "destructive" }); }
-      return;
-    }
     const { data, error } = await supabase
       .from("audio_episodes")
       .insert({ title: newTitle.trim(), audio_url: "", display_order: (first?.display_order ?? 0) - 1 })
@@ -117,29 +107,13 @@ const ManageAudioEpisodes = () => {
   };
 
   const save = async (t: Episode) => {
-    if (mediaUploadInProgress()) { toast({ title: "انتظر اكتمال رفع صورة الحلقة", variant: "destructive" }); return; }
-    if (t.is_featured && !(await mediaCapabilities())) {
+    if (t.is_featured) {
       await supabase.from("audio_episodes").update({ is_featured: false }).neq("id", t.id);
     }
     if (!t.audio_url.trim()) {
       toast({ title: "تنبيه", description: "الحلقة بدون ملف صوتي، لن تعمل في المشغّل", variant: "destructive" });
     }
     const previous = savedAudio.current[t.id];
-    if (await mediaCapabilities()) {
-      try {
-        await saveMediaRecord("audio_episodes", t.id, {
-          title: t.title, description: t.description || null, category: t.category || null,
-          audio_url: t.audio_url, cover_image_url: t.cover_image_url || null,
-          duration_label: t.duration_label || null, episode_date: t.episode_date || null,
-          is_featured: t.is_featured, is_active: t.is_active,
-        });
-        savedAudio.current[t.id] = t.audio_url;
-        if (previous && previous !== t.audio_url) discardR2Upload(previous);
-        toast({ title: "تم الحفظ", description: "تم تحديث الحلقة" });
-        load();
-      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
-      return;
-    }
     const { error } = await supabase
       .from("audio_episodes")
       .update({
@@ -167,7 +141,7 @@ const ManageAudioEpisodes = () => {
 
   const remove = async (t: Episode) => {
     if (!confirm(`حذف "${t.title}"؟`)) return;
-    const { error } = await deleteMediaRecord("audio_episodes", t.id);
+    const { error } = await supabase.from("audio_episodes").delete().eq("id", t.id);
     if (error) {
       toast({ title: "خطأ", description: "تعذّر الحذف", variant: "destructive" });
       return;

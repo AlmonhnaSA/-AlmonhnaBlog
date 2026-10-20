@@ -1,4 +1,3 @@
-import { mediaCapabilities } from "@/lib/mediaMutations";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -193,7 +192,6 @@ export default function ManageUsers() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async ({ profileId, userId }: { profileId: string; userId: string }) => {
-      if (await mediaCapabilities()) throw new Error("حذف الحساب متوقف حتى مراجعة صلاحياته؛ لم يُحذف محتواه أو ملفاته.");
       // Delete articles by this user
       const { error: articlesError } = await supabase
         .from("articles")

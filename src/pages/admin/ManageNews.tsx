@@ -1,4 +1,3 @@
-import { deleteMediaRecord } from "@/lib/mediaMutations";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -72,7 +71,7 @@ const ManageNews = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await deleteMediaRecord("news", id);
+      const { error } = await supabase.from("news").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -1,5 +1,3 @@
-import { deleteMediaRecord, mediaCapabilities, rememberMediaRevision, saveMediaRecord } from "@/lib/mediaMutations";
-import { mediaUploadInProgress } from "@/lib/mediaUploads";
 import { useDashboardSearch } from "@/components/DashboardSearch";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +46,6 @@ const ManageTimelines = () => {
       supabase.from("timelines").select("*").order("display_order"),
       supabase.from("timeline_stops").select("*").order("display_order"),
     ]);
-    (lines || []).forEach(row => rememberMediaRevision("timelines", row));
     setTimelines(
       (lines || []).map((l: any) => ({
         id: l.id,
@@ -83,13 +80,6 @@ const ManageTimelines = () => {
     e.preventDefault();
     if (!newTitle.trim()) return;
     const { data: first } = await supabase.from("timelines").select("display_order").order("display_order").limit(1).maybeSingle();
-    if (await mediaCapabilities()) {
-      try {
-        const created = await saveMediaRecord("timelines", undefined, { title: newTitle.trim(), display_order: (first?.display_order ?? 0) - 1 });
-        setNewTitle(""); setOpenId(created.id); load();
-      } catch { toast({ title: "تعذّرت الإضافة", variant: "destructive" }); }
-      return;
-    }
     const { data, error } = await supabase
       .from("timelines")
       .insert({ title: newTitle.trim(), display_order: (first?.display_order ?? 0) - 1 })
@@ -105,16 +95,6 @@ const ManageTimelines = () => {
   };
 
   const save = async (t: Timeline) => {
-    if (mediaUploadInProgress()) return;
-    if (await mediaCapabilities()) {
-      try {
-        await saveMediaRecord("timelines", t.id, { title: t.title, timeline_type: t.timeline_type, image_url: t.image_url || null, color: t.color, is_active: t.is_active }, {
-          timeline_stops: t.stops.filter(s => s.title.trim()).map((s, display_order) => ({ title: s.title, label: s.label || null, description: s.description || null, image_url: s.image_url || null, article_id: s.article_id || null, display_order })),
-        });
-        toast({ title: "تم الحفظ" }); load();
-      } catch { toast({ title: "تعذّر الحفظ الآمن", variant: "destructive" }); }
-      return;
-    }
     const { error } = await supabase
       .from("timelines")
       .update({
@@ -131,8 +111,7 @@ const ManageTimelines = () => {
       return;
     }
 
-    const { error: childDeleteError } = await supabase.from("timeline_stops").delete().eq("timeline_id", t.id);
-    if (childDeleteError) { toast({ title: "تعذّر حفظ المحطات", variant: "destructive" }); return; }
+    await supabase.from("timeline_stops").delete().eq("timeline_id", t.id);
     const rows = t.stops
       .filter((s) => s.title.trim())
       .map((s, i) => ({
@@ -144,10 +123,7 @@ const ManageTimelines = () => {
         article_id: s.article_id || null,
         display_order: i,
       }));
-    if (rows.length) {
-      const { error } = await supabase.from("timeline_stops").insert(rows);
-      if (error) { toast({ title: "تعذّر حفظ المحطات", variant: "destructive" }); return; }
-    }
+    if (rows.length) await supabase.from("timeline_stops").insert(rows);
 
     toast({ title: "تم الحفظ", description: "تم تحديث الخط الزمني" });
     load();
@@ -155,8 +131,7 @@ const ManageTimelines = () => {
 
   const remove = async (t: Timeline) => {
     if (!confirm(`حذف الخط "${t.title}"؟`)) return;
-    const { error } = await deleteMediaRecord("timelines", t.id);
-    if (error) { toast({ title: "تعذّر الحذف", variant: "destructive" }); return; }
+    await supabase.from("timelines").delete().eq("id", t.id);
     load();
   };
 
