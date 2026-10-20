@@ -3,7 +3,7 @@
 // falls back to the original URL.
 const OBJ = "/storage/v1/object/public/";
 const RENDER = "/storage/v1/render/image/public/";
-const WIDTHS = [96, 192, 320, 480, 640, 960, 1280, 1600];
+const WIDTHS = [96, 192, 320, 480, 640, 960, 1280, 1600, 1920];
 
 const canOptimize = (url: string) =>
   typeof url === "string" &&
@@ -11,9 +11,13 @@ const canOptimize = (url: string) =>
   !/\.(gif|svg)(\?|$)/i.test(url) &&
   !url.includes("/render/image/");
 
+// Larger renders keep more detail: small thumbnails stay light, while
+// images displayed at full column/cover size use a higher quality.
+const qualityFor = (w: number) => (w >= 960 ? 85 : w >= 480 ? 80 : 72);
+
 const variant = (url: string, w: number) => {
   const base = url.replace(OBJ, RENDER);
-  return `${base}${base.includes("?") ? "&" : "?"}width=${w}&quality=72&resize=contain`;
+  return `${base}${base.includes("?") ? "&" : "?"}width=${w}&quality=${qualityFor(w)}&resize=contain`;
 };
 
 export const optimizedSrc = (url: string, w = 960) => (canOptimize(url) ? variant(url, w) : url);
@@ -52,8 +56,14 @@ export const installImageOptimizer = () => {
         autoSrcSets.add(img);
         nativeSet.call(img, "srcset", WIDTHS.map((w) => `${variant(url, w)} ${w}w`).join(", "));
       }
-      nativeSet.call(img, "src", variant(url, 960));
+      nativeSet.call(img, "src", variant(url, 1280));
       if (autoSizes.has(img)) resizeObserver.observe(img);
+      // Layout (sliders, galleries, fonts) can settle after the first frame;
+      // re-measure so a large image never stays stuck on a small candidate.
+      requestAnimationFrame(() => {
+        if (originals.get(img) === url) updateSize(img);
+      });
+      img.addEventListener("load", () => updateSize(img), { once: true });
     });
   };
 
@@ -119,8 +129,8 @@ export const compressImage = async (file: File, maxDim = 1920, quality = 0.85): 
     const bmp = await createImageBitmap(file);
     const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale);
-    canvas.height = Math.round(bmp.height * scale);
+    canvas.width = Math.max(1, Math.round(bmp.width * scale));
+    canvas.height = Math.max(1, Math.round(bmp.height * scale));
     const context = canvas.getContext("2d");
     if (!context) { bmp.close(); return file; }
     context.drawImage(bmp, 0, 0, canvas.width, canvas.height);
