@@ -6,6 +6,6 @@ import { installImageOptimizer } from "./lib/imageOptimizer";
 
 // يجب أن يعمل قبل تحميل عميل Supabase حتى يعترض عمليات setItem الفاشلة
 initStorageGuard();
-installImageOptimizer();
+//installImageOptimizer();
 
 createRoot(document.getElementById("root")!).render(<App />);
